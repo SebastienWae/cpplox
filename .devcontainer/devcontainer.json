@@ -15,7 +15,7 @@
         "eamodio.gitlens",
         "oderwat.indent-rainbow",
         "Gruntfuggly.todo-tree",
-        "IBM.output-colorizer",
+        "michaeldrotar.janky-output-channels",
         "pascalsenn.keyboard-quickfix"
       ],
       "settings": {
