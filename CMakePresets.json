@@ -7,8 +7,7 @@
       "binaryDir": "${sourceDir}/build/${presetName}",
       "installDir": "${sourceDir}/install/${presetName}",
       "cacheVariables": {
-        "CMAKE_CXX_COMPILER": "g++-12",
-        "CMAKE_CXX_INCLUDE_WHAT_YOU_USE": "include-what-you-use"
+        "CMAKE_CXX_COMPILER": "g++-12"
       }
     },
     {
@@ -31,18 +30,38 @@
       "name": "release",
       "inherits": "base",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+        "CMAKE_BUILD_TYPE": "Release",
+        "CMAKE_CXX_INCLUDE_WHAT_YOU_USE": "include-what-you-use",
+        "CMAKE_CXX_CLANG_TIDY": "clang-tidy-15",
+        "CMAKE_CXX_CPPCHECK": "cppcheck"
       }
     }
   ],
   "buildPresets": [
     {
-      "name": "default-debug",
+      "name": "build-debug",
       "configurePreset": "debug"
     },
     {
-      "name": "default-sanitize",
+      "name": "build-sanitize",
       "configurePreset": "sanitize"
+    },
+    {
+      "name": "build-release",
+      "configurePreset": "release"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "test",
+      "configurePreset": "sanitize",
+      "output": {
+        "outputOnFailure": true
+      },
+      "execution": {
+        "noTestsAction": "error",
+        "stopOnFailure": true
+      }
     }
   ]
 }

@@ -1,22 +1,27 @@
 cmake_minimum_required(VERSION 3.22)
 
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/externals/sanitizers-cmake/cmake" ${CMAKE_MODULE_PATH})
-
-find_package(Sanitizers)
-
 project(cpplox 
   VERSION 0.0.1
   LANGUAGES CXX)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_CXX_CLANG_TIDY clang-tidy-15)
-set(CMAKE_CXX_CPPCHECK cppcheck)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
-set(sources
-  "src/main.cpp")
-set(headers)
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_executable(${PROJECT_NAME} ${headers} ${sources})
+  set(CMAKE_CXX_STANDARD 20 CACHE STRING "The C++ standard to use")
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  set(CMAKE_CXX_EXTENSIONS OFF)
 
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
-set_target_properties(${PROJECT_NAME} PROPERTIES CXX_EXTENSIONS OFF)
+  set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+  set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/externals/sanitizers-cmake/cmake" ${CMAKE_MODULE_PATH})
+  find_package(Sanitizers)
+
+  include(CTest)
+endif()
+
+add_subdirectory(src)
+if((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR MODERN_CMAKE_BUILD_TESTING) AND BUILD_TESTING)
+  add_subdirectory(externals/doctest)
+  add_subdirectory(test)
+endif()
