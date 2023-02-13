@@ -27,5 +27,7 @@
 
   "remoteEnv": {
     "EDITOR": "code -w"
-  }
+  },
+
+  "remoteUser": "dev"
 }
