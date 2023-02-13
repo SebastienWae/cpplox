@@ -5,6 +5,10 @@ project(cpplox
   LANGUAGES CXX)
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+  configure_file(
+    "${PROJECT_SOURCE_DIR}/include/config.hpp.in"
+    "${PROJECT_BINARY_DIR}/include/config.hpp"
+  )
 
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
