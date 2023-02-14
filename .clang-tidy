@@ -1,8 +1,23 @@
 ---
-Checks:          'clang-diagnostic-*,clang-analyzer-*,*,-abseil-*,-altera-*,-android-*,-boost-*,-darwin-*,-fuchsia-*,-google-*,-hicpp-*,-linuxkernel-*,-llvmlibc-*,-mpi-*,-objc-*,-openmp-*,-zircon-*'
+FormatStyle: file
+Checks: >
+  *,
+  -abseil-*,
+  -altera-*,
+  -android-*,
+  -boost-*,
+  -darwin-*,
+  -fuchsia-*,
+  -google-*,
+  -hicpp-*,
+  -linuxkernel-*,
+  -llvmlibc-*,
+  -mpi-* ,
+  -objc-*,
+  -openmp-*,
+  -zircon-*,
+  -readability-identifier-length
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
-FormatStyle:     file
 ...
-
