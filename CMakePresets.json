@@ -8,7 +8,10 @@
       "installDir": "${sourceDir}/install/${presetName}",
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "g++-12"
-      }
+      },
+      "environment": {
+        "CXX": "g++-12"
+      },
       "toolchainFile": "${sourceDir}/externals/vcpkg/scripts/buildsystems/vcpkg.cmake"
     },
     {
