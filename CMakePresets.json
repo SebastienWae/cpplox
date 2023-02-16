@@ -9,6 +9,7 @@
       "cacheVariables": {
         "CMAKE_CXX_COMPILER": "g++-12"
       }
+      "toolchainFile": "${sourceDir}/externals/vcpkg/scripts/buildsystems/vcpkg.cmake"
     },
     {
       "name": "debug",

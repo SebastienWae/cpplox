@@ -1,6 +1,6 @@
 [submodule "externals/sanitizers-cmake"]
 	path = externals/sanitizers-cmake
 	url = https://github.com/arsenm/sanitizers-cmake
-[submodule "externals/doctest"]
-	path = externals/doctest
-	url = https://github.com/doctest/doctest.git
+[submodule "externals/vcpkg"]
+	path = externals/vcpkg
+	url = https://github.com/Microsoft/vcpkg.git
