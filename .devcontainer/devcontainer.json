@@ -16,11 +16,13 @@
         "oderwat.indent-rainbow",
         "Gruntfuggly.todo-tree",
         "michaeldrotar.janky-output-channels",
-        "pascalsenn.keyboard-quickfix"
+        "pascalsenn.keyboard-quickfix",
+        "dberezin.lox-language"
       ],
       "settings": {
         "clangd.path": "clangd-15",
-        "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json"
+        "cmake.copyCompileCommands": "${workspaceFolder}/compile_commands.json",
+        "C/C++ Include Guard.Prefix": "CPPLOX_"
       }
     }
   },
