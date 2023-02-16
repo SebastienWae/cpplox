@@ -16,7 +16,8 @@ Checks: >
   -objc-*,
   -openmp-*,
   -zircon-*,
-  -readability-identifier-length
+  -readability-identifier-length,
+  -bugprone-easily-swappable-parameters
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
