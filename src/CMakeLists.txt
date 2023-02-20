@@ -1,21 +1,35 @@
-set(HEADER_LIST )
 find_package(fmt CONFIG REQUIRED)
 
-set(SOURCE_LIST )
+set(HEADER_LIST
+  "ErrorReporter.hpp"
+  "Token.hpp"
+  "Lexer.hpp"
+  "utils/Enums.hpp")
+
+set(SOURCE_LIST
+  "ErrorReporter.cpp"
+  "Token.cpp"
+  "Lexer.cpp")
 
 add_library(${PROJECT_NAME} ${HEADER_LIST} ${SOURCE_LIST})
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
   fmt::fmt)
 target_include_directories(${PROJECT_NAME} PUBLIC "")
+set_target_properties(${PROJECT_NAME}
+  PROPERTIES
+  ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 
 add_executable(${PROJECT_NAME}_bin main.cpp)
-set_target_properties(${PROJECT_NAME}_bin PROPERTIES OUTPUT_NAME ${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME}_bin 
   PRIVATE
   fmt::fmt
   ${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME}_bin PRIVATE ${PROJECT_BINARY_DIR}/include)
+set_target_properties(${PROJECT_NAME}_bin
+  PROPERTIES
+  OUTPUT_NAME ${PROJECT_NAME}
+  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 if (SANITIZE_ADDRESS OR SANITIZE_MEMORY OR SANITIZE_THREAD OR SANITIZE_UNDEFINED)
   add_sanitizers(${PROJECT_NAME})
