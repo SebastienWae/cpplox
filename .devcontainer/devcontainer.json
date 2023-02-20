@@ -28,7 +28,8 @@
   },
 
   "remoteEnv": {
-    "EDITOR": "code -w"
+    "EDITOR": "code -w",
+    "VCPKG_DISABLE_METRICS": "1"
   },
 
   "remoteUser": "dev"
