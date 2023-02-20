@@ -2,7 +2,7 @@
   "version": 3,
   "configurePresets": [
     {
-      "name": "base",
+      "name": "config-base",
       "hidden": true,
       "binaryDir": "${sourceDir}/build/${presetName}",
       "installDir": "${sourceDir}/install/${presetName}",
@@ -15,15 +15,15 @@
       "toolchainFile": "${sourceDir}/externals/vcpkg/scripts/buildsystems/vcpkg.cmake"
     },
     {
-      "name": "debug",
-      "inherits": "base",
+      "name": "config-debug",
+      "inherits": "config-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
-      "name": "sanitize",
-      "inherits": "base",
+      "name": "config-sanitize",
+      "inherits": "config-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
         "SANITIZE_ADDRESS": "ON",
@@ -31,8 +31,8 @@
       }
     },
     {
-      "name": "release",
-      "inherits": "base",
+      "name": "config-release",
+      "inherits": "config-base",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_CXX_INCLUDE_WHAT_YOU_USE": "include-what-you-use",
@@ -44,21 +44,21 @@
   "buildPresets": [
     {
       "name": "build-debug",
-      "configurePreset": "debug"
+      "configurePreset": "config-debug"
     },
     {
       "name": "build-sanitize",
-      "configurePreset": "sanitize"
+      "configurePreset": "config-sanitize"
     },
     {
       "name": "build-release",
-      "configurePreset": "release"
+      "configurePreset": "config-release"
     }
   ],
   "testPresets": [
     {
-      "name": "test",
-      "configurePreset": "sanitize",
+      "name": "test-base",
+      "hidden": true,
       "output": {
         "outputOnFailure": true
       },
@@ -66,6 +66,21 @@
         "noTestsAction": "error",
         "stopOnFailure": true
       }
+    },
+    {
+      "name": "test-debug",
+      "configurePreset": "config-debug",
+      "inherits": "test-base"
+    },
+    {
+      "name": "test-sanitize",
+      "configurePreset": "config-sanitize",
+      "inherits": "test-base"
+    },
+    {
+      "name": "test-release",
+      "configurePreset": "config-release",
+      "inherits": "test-base"
     }
   ]
 }
