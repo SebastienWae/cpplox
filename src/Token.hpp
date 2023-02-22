@@ -61,11 +61,16 @@ class Token {
   std::uint32_t const m_length;
   std::uint32_t const m_line;
 
-public:
+protected:
   Token(TokenType type, std::uint32_t offset, std::uint32_t length,
         std::uint32_t line);
 
+public:
   virtual ~Token() = default;
+  Token(const Token &) = delete;
+  Token(Token &&) = delete;
+  auto operator=(const Token &) -> Token & = delete;
+  auto operator=(Token &&) -> Token & = delete;
 
   [[nodiscard]] inline auto getType() const -> TokenType { return m_type; }
   [[nodiscard]] inline auto getOffset() const -> std::uint32_t {
