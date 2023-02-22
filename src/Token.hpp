@@ -9,7 +9,8 @@
 #include <string_view>
 #include <variant>
 
-enum class TokenType {
+enum class TokenType
+{
   TOKEN_IDENTIFIER,
   TOKEN_STRING,
   TOKEN_NUMBER,
@@ -55,109 +56,142 @@ enum class TokenType {
   TOKEN_EOF
 };
 
-class Token {
+class Token
+{
   TokenType const m_type;
   std::uint32_t const m_offset;
   std::uint32_t const m_length;
   std::uint32_t const m_line;
 
 protected:
-  Token(TokenType type, std::uint32_t offset, std::uint32_t length,
-        std::uint32_t line);
+  Token (TokenType type, std::uint32_t offset, std::uint32_t length,
+         std::uint32_t line);
 
 public:
-  virtual ~Token() = default;
-  Token(const Token &) = delete;
-  Token(Token &&) = delete;
-  auto operator=(const Token &) -> Token & = delete;
-  auto operator=(Token &&) -> Token & = delete;
+  virtual ~Token () = default;
+  Token (const Token &) = delete;
+  Token (Token &&) = delete;
+  auto operator= (const Token &) -> Token & = delete;
+  auto operator= (Token &&) -> Token & = delete;
 
-  [[nodiscard]] inline auto getType() const -> TokenType { return m_type; }
-  [[nodiscard]] inline auto getOffset() const -> std::uint32_t {
+  [[nodiscard]] inline auto
+  getType () const -> TokenType
+  {
+    return m_type;
+  }
+  [[nodiscard]] inline auto
+  getOffset () const -> std::uint32_t
+  {
     return m_offset;
   }
-  [[nodiscard]] inline auto getLength() const -> std::uint32_t {
+  [[nodiscard]] inline auto
+  getLength () const -> std::uint32_t
+  {
     return m_length;
   }
-  [[nodiscard]] inline auto getLine() const -> std::uint32_t { return m_line; }
+  [[nodiscard]] inline auto
+  getLine () const -> std::uint32_t
+  {
+    return m_line;
+  }
 
-  [[nodiscard]] virtual auto toString() const -> std::string = 0;
+  [[nodiscard]] virtual auto toString () const -> std::string = 0;
 };
 
-template <TokenType type> constexpr auto is_value_token() -> bool {
-  return type == TokenType::TOKEN_NUMBER || type == TokenType::TOKEN_STRING ||
-         type == TokenType::TOKEN_IDENTIFIER;
+template <TokenType type>
+constexpr auto
+is_value_token () -> bool
+{
+  return type == TokenType::TOKEN_NUMBER || type == TokenType::TOKEN_STRING
+         || type == TokenType::TOKEN_IDENTIFIER;
 }
 
 template <TokenType type>
-  requires(!is_value_token<type>())
-class BasicToken : public Token {
+requires (!is_value_token<type> ()) class BasicToken : public Token
+{
 public:
-  BasicToken(std::uint32_t offset, std::uint32_t length, std::uint32_t line)
-      : Token(type, offset, length, line) {}
+  BasicToken (std::uint32_t offset, std::uint32_t length, std::uint32_t line)
+      : Token (type, offset, length, line)
+  {
+  }
 
-  [[nodiscard]] auto toString() const -> std::string override {
-    return fmt::format("[{}]\n - offset: {}\n - length: {}\n - line: {}",
-                       Enums::enum_to_string(getType()), getOffset(),
-                       getLength(), getLine());
+  [[nodiscard]] auto
+  toString () const -> std::string override
+  {
+    return fmt::format ("[{}]\n - offset: {}\n - length: {}\n - line: {}",
+                        Enums::enum_to_string (getType ()), getOffset (),
+                        getLength (), getLine ());
   }
 };
 
 using TokenValueType = std::variant<double, std::string_view>;
 
-template <TokenType type> class ValueToken : public Token {
+template <TokenType type> class ValueToken : public Token
+{
   TokenValueType const m_value;
 
 public:
-  [[nodiscard]] auto toString() const -> std::string override {
+  [[nodiscard]] auto
+  toString () const -> std::string override
+  {
     std::string value_string;
 
-    if (auto const *ptr_val = std::get_if<double>(&m_value)) {
-      value_string = fmt::format("{}", *ptr_val);
-    } else if (auto const *ptr_val = std::get_if<std::string_view>(&m_value)) {
-      value_string = *ptr_val;
-    }
+    if (auto const *ptr_val = std::get_if<double> (&m_value))
+      {
+        value_string = fmt::format ("{}", *ptr_val);
+      }
+    else if (auto const *ptr_val = std::get_if<std::string_view> (&m_value))
+      {
+        value_string = *ptr_val;
+      }
 
-    return fmt::format(
+    return fmt::format (
         "[{}]\n - value: {}\n - offset: {}\n - length: {}\n - line: {}",
-        Enums::enum_to_string(getType()), value_string, getOffset(),
-        getLength(), getLine());
+        Enums::enum_to_string (getType ()), value_string, getOffset (),
+        getLength (), getLine ());
   }
 
   // NUMBER
-  ValueToken(double value, std::uint32_t offset, std::uint32_t length,
-             std::uint32_t line)
-    requires(type == TokenType::TOKEN_NUMBER)
-      : Token(type, offset, length, line), m_value(value) {}
-
-  [[nodiscard]] inline auto getValue() const -> double
-    requires(type == TokenType::TOKEN_NUMBER)
+  ValueToken (double value, std::uint32_t offset, std::uint32_t length,
+              std::uint32_t line) requires (type == TokenType::TOKEN_NUMBER)
+      : Token (type, offset, length, line), m_value (value)
   {
-    return std::get<double>(m_value);
+  }
+
+  [[nodiscard]] inline auto
+  getValue () const -> double requires (type == TokenType::TOKEN_NUMBER)
+  {
+    return std::get<double> (m_value);
   }
 
   // STRING
-  ValueToken(std::string_view value, std::uint32_t offset, std::uint32_t length,
-             std::uint32_t line)
-    requires(type == TokenType::TOKEN_STRING)
-      : Token(type, offset, length, line), m_value(value) {}
-
-  [[nodiscard]] inline auto getValue() const -> std::string_view
-    requires(type == TokenType::TOKEN_STRING)
+  ValueToken (std::string_view value, std::uint32_t offset,
+              std::uint32_t length, std::uint32_t line)
+      requires (type == TokenType::TOKEN_STRING)
+      : Token (type, offset, length, line), m_value (value)
   {
-    return std::get<std::string_view>(m_value);
+  }
+
+  [[nodiscard]] inline auto
+  getValue () const -> std::string_view
+      requires (type == TokenType::TOKEN_STRING)
+  {
+    return std::get<std::string_view> (m_value);
   }
 
   // IDENTIFIER
-  ValueToken(std::string_view value, std::uint32_t offset, std::uint32_t length,
-             std::uint32_t line)
-    requires(type == TokenType::TOKEN_IDENTIFIER)
-      : Token(type, offset, length, line), m_value(value) {}
-
-  [[nodiscard]] inline auto getValue() const -> std::string_view
-    requires(type == TokenType::TOKEN_IDENTIFIER)
+  ValueToken (std::string_view value, std::uint32_t offset,
+              std::uint32_t length, std::uint32_t line)
+      requires (type == TokenType::TOKEN_IDENTIFIER)
+      : Token (type, offset, length, line), m_value (value)
   {
-    return std::get<std::string_view>(m_value);
+  }
+
+  [[nodiscard]] inline auto
+  getValue () const -> std::string_view
+      requires (type == TokenType::TOKEN_IDENTIFIER)
+  {
+    return std::get<std::string_view> (m_value);
   }
 };
 
