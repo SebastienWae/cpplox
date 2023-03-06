@@ -1,5 +1,5 @@
+#include "Lexer.hpp"
 #include "Token.hpp"
-#include <Lexer.hpp>
 #include <cctype>
 #include <charconv>
 #include <cstddef>
@@ -37,131 +37,170 @@ Lexer::scanTokens () -> std::optional<
     }
   catch (std::exception &e)
     {
+      m_error_reporter.setError ("Lexer", "Unexpected error");
       return std::nullopt;
     }
 }
 
-// NOLINTNEXTLINE(readability-function-cognitive-complexity)
 void
-Lexer::scanToken ()
+Lexer::scanToken () // NOLINT(readability-function-cognitive-complexity)
 {
-  auto char_at_point = m_source.at (m_pos_current++);
-
-  switch (char_at_point)
+  if (match ('('))
     {
-    case '(':
       addToken<TokenType::TOKEN_LEFT_PAREN> ();
-      break;
-    case ')':
+    }
+  else if (match (')'))
+    {
       addToken<TokenType::TOKEN_RIGHT_PAREN> ();
-      break;
-    case '{':
+    }
+  else if (match ('{'))
+    {
       addToken<TokenType::TOKEN_LEFT_BRACE> ();
-      break;
-    case '}':
+    }
+  else if (match ('}'))
+    {
       addToken<TokenType::TOKEN_RIGHT_BRACE> ();
-      break;
-    case ',':
+    }
+  else if (match (','))
+    {
       addToken<TokenType::TOKEN_COMMA> ();
-      break;
-    case '.':
+    }
+  else if (match ('.'))
+    {
       addToken<TokenType::TOKEN_DOT> ();
-      break;
-    case '-':
+    }
+  else if (match ('-'))
+    {
       addToken<TokenType::TOKEN_MINUS> ();
-      break;
-    case '+':
+    }
+  else if (match ('+'))
+    {
       addToken<TokenType::TOKEN_PLUS> ();
-      break;
-    case ';':
+    }
+  else if (match (';'))
+    {
       addToken<TokenType::TOKEN_SEMICOLON> ();
-      break;
-    case '*':
+    }
+  else if (match ('*'))
+    {
       addToken<TokenType::TOKEN_STAR> ();
-      break;
-    case '!':
-      match ('=') ? addToken<TokenType::TOKEN_BANG_EQUAL> ()
-                  : addToken<TokenType::TOKEN_BANG> ();
-      break;
-    case '=':
-      match ('=') ? addToken<TokenType::TOKEN_EQUAL_EQUAL> ()
-                  : addToken<TokenType::TOKEN_EQUAL> ();
-      break;
-    case '<':
-      match ('=') ? addToken<TokenType::TOKEN_LESS_EQUAL> ()
-                  : addToken<TokenType::TOKEN_LESS> ();
-      break;
-    case '>':
-      match ('=') ? addToken<TokenType::TOKEN_GREATER_EQUAL> ()
-                  : addToken<TokenType::TOKEN_GREATER> ();
-      break;
-    case '/':
-      {
-        if (match ('*'))
-          {
-            while (!isAtEnd () && !(match ('*') && match ('/')))
-              {
-                if (peek () == '\n')
-                  {
-                    ++m_line_current;
-                  }
-                ++m_pos_current;
-              }
-          }
-        else if (match ('/'))
-          {
-            while (peek () != '\n' && !isAtEnd ())
-              {
-                ++m_pos_current;
-              }
-          }
-        else
-          {
-            addToken<TokenType::TOKEN_SLASH> ();
-          }
-        break;
-      }
-    case '"':
+    }
+  else if (match ('?'))
+    {
+      addToken<TokenType::TOKEN_QUESTION> ();
+    }
+  else if (match (':'))
+    {
+      addToken<TokenType::TOKEN_COLON> ();
+    }
+  else if (match ('!'))
+    {
+      if (match ('='))
+        {
+          addToken<TokenType::TOKEN_BANG_EQUAL> ();
+        }
+      else
+        {
+          addToken<TokenType::TOKEN_BANG> ();
+        }
+    }
+  else if (match ('='))
+    {
+      if (match ('='))
+        {
+          addToken<TokenType::TOKEN_EQUAL_EQUAL> ();
+        }
+      else
+        {
+          addToken<TokenType::TOKEN_EQUAL> ();
+        }
+    }
+  else if (match ('<'))
+    {
+      if (match ('='))
+        {
+          addToken<TokenType::TOKEN_LESS_EQUAL> ();
+        }
+      else
+        {
+          addToken<TokenType::TOKEN_LESS> ();
+        }
+    }
+  else if (match ('>'))
+    {
+      if (match ('='))
+        {
+          addToken<TokenType::TOKEN_GREATER_EQUAL> ();
+        }
+      else
+        {
+          addToken<TokenType::TOKEN_GREATER> ();
+        }
+    }
+  else if (match ('/'))
+    {
+      if (match ('*'))
+        {
+          while (!isAtEnd () && (peek () != '*' || peekNext () != '/'))
+            {
+              if (peek () == '\n')
+                {
+                  ++m_line_current;
+                }
+              ++m_pos_current;
+            }
+          if (!isAtEnd ())
+            {
+              m_pos_current += 2;
+            }
+        }
+      else if (match ('/'))
+        {
+          while (!isAtEnd () && peek () != '\n')
+            {
+              ++m_pos_current;
+            }
+        }
+      else
+        {
+          addToken<TokenType::TOKEN_SLASH> ();
+        }
+    }
+  else if (match ('"'))
+    {
       string ();
-      break;
-    default:
-      {
-        if (std::isdigit (char_at_point) != 0)
-          {
-            number ();
-          }
-        else if (char_at_point == '_' || (std::isalpha (char_at_point) != 0))
-          {
-            identifier ();
-          }
-        else if (char_at_point == '\n')
-          {
-            ++m_line_current;
-          }
-        else if (std::isspace (char_at_point) != 0)
-          {
-            return;
-          }
-        else
-          {
-            m_error_reporter.setError ("Unexpected character", m_pos_start,
-                                       m_pos_current - m_pos_start,
-                                       m_line_start, m_line_current);
-          }
-      }
+    }
+  else if (std::isdigit (peek ()) != 0)
+    {
+      number ();
+    }
+  else if (peek () == '_' || std::isalpha (peek ()) != 0)
+    {
+      identifier ();
+    }
+  else if (match ('\n'))
+    {
+      ++m_line_current;
+    }
+  else if (std::isspace (peek ()) != 0)
+    {
+      ++m_pos_current;
+    }
+  else
+    {
+      error ("Unexpected character");
     }
 }
 
-auto
-Lexer::match (char const &expected) -> bool
+[[nodiscard]] auto
+Lexer::match (char c) -> bool
 {
-  if (isAtEnd () || m_source.at (m_pos_current) != expected)
+  if (peek () == c)
     {
-      return false;
+      ++m_pos_current;
+      return true;
     }
-
-  ++m_pos_current;
-  return true;
+  return false;
 }
 
 [[nodiscard]] auto
@@ -187,8 +226,16 @@ Lexer::peekNext () const -> char
 void
 Lexer::string ()
 {
-  while (peek () != '"' && !isAtEnd ())
+  while (!isAtEnd ())
     {
+      if (match ('"'))
+        {
+          auto string = m_source.substr (m_pos_start + 1,
+                                         m_pos_current - m_pos_start - 2);
+          addToken<TokenType::TOKEN_STRING> (string);
+          return;
+        }
+
       if (peek () == '\n')
         {
           ++m_line_current;
@@ -196,18 +243,7 @@ Lexer::string ()
       ++m_pos_current;
     }
 
-  if (isAtEnd ())
-    {
-      m_error_reporter.setError ("Unterminated string", m_pos_start,
-                                 m_pos_current - m_pos_start, m_line_start,
-                                 m_line_current);
-      return;
-    }
-
-  auto string
-      = m_source.substr (m_pos_start + 1, m_pos_current - m_pos_start - 1);
-  addToken<TokenType::TOKEN_STRING> (string);
-  ++m_pos_current;
+  error ("Unterminated string");
 }
 
 void
@@ -218,10 +254,8 @@ Lexer::number ()
       ++m_pos_current;
     }
 
-  if (peek () == '.' && (std::isdigit (peekNext ()) != 0))
+  if ((std::isdigit (peekNext ()) != 0) && match ('.'))
     {
-      ++m_pos_current;
-
       while (!isAtEnd () && std::isdigit (m_source.at (m_pos_current)) != 0)
         {
           ++m_pos_current;
@@ -237,15 +271,11 @@ Lexer::number ()
     }
   else if (res.ec == std::errc::invalid_argument)
     {
-      m_error_reporter.setError ("Invalid number conversion", m_pos_start,
-                                 m_pos_current - m_pos_start, m_line_start,
-                                 m_line_current);
+      error ("Invalid number conversion");
     }
   else if (res.ec == std::errc::result_out_of_range)
     {
-      m_error_reporter.setError ("Out of range number conversion", m_pos_start,
-                                 m_pos_current - m_pos_start, m_line_start,
-                                 m_line_current);
+      error ("Out of range number conversion");
     }
 }
 
@@ -328,4 +358,12 @@ Lexer::identifier ()
     {
       addToken<TokenType::TOKEN_IDENTIFIER> (lexeme);
     }
+}
+
+void
+Lexer::error (std::string const &error_msg)
+{
+  m_error_reporter.setError ("Lexer", fmt::format ("{} at postion {}, line {}",
+                                                   error_msg, m_pos_start,
+                                                   m_line_start));
 }

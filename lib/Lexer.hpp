@@ -61,13 +61,15 @@ private:
         value, m_pos_start, m_pos_current - m_pos_start, m_line_start));
   }
 
-  auto match (char const &expected) -> bool;
+  [[nodiscard]] auto match (char c) -> bool;
   [[nodiscard]] auto peek () const -> char;
   [[nodiscard]] auto peekNext () const -> char;
 
   void string ();
   void number ();
   void identifier ();
+
+  void error (std::string const &error_msg);
 };
 
 #endif /* CPPLOX_LEXER_HPP */
