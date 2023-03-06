@@ -27,6 +27,9 @@ enum class TokenType
   TOKEN_SLASH,
   TOKEN_STAR,
 
+  TOKEN_QUESTION,
+  TOKEN_COLON,
+
   TOKEN_BANG,
   TOKEN_BANG_EQUAL,
   TOKEN_EQUAL,
@@ -58,14 +61,12 @@ enum class TokenType
 
 class Token
 {
-  TokenType const m_type;
   std::uint32_t const m_offset;
   std::uint32_t const m_length;
   std::uint32_t const m_line;
 
 protected:
-  Token (TokenType type, std::uint32_t offset, std::uint32_t length,
-         std::uint32_t line);
+  Token (std::uint32_t offset, std::uint32_t length, std::uint32_t line);
 
 public:
   virtual ~Token () = default;
@@ -74,11 +75,6 @@ public:
   auto operator= (const Token &) -> Token & = delete;
   auto operator= (Token &&) -> Token & = delete;
 
-  [[nodiscard]] inline auto
-  getType () const -> TokenType
-  {
-    return m_type;
-  }
   [[nodiscard]] inline auto
   getOffset () const -> std::uint32_t
   {
@@ -95,6 +91,7 @@ public:
     return m_line;
   }
 
+  [[nodiscard]] virtual auto getType () const -> TokenType = 0;
   [[nodiscard]] virtual auto toString () const -> std::string = 0;
 };
 
@@ -111,87 +108,93 @@ requires (!is_value_token<type> ()) class BasicToken : public Token
 {
 public:
   BasicToken (std::uint32_t offset, std::uint32_t length, std::uint32_t line)
-      : Token (type, offset, length, line)
+      : Token (offset, length, line)
   {
   }
 
   [[nodiscard]] auto
+  getType () const -> TokenType override
+  {
+    return type;
+  }
+
+  [[nodiscard]] inline auto
   toString () const -> std::string override
   {
     return fmt::format ("[{}]\n - offset: {}\n - length: {}\n - line: {}",
-                        Enums::enum_to_string (getType ()), getOffset (),
+                        Enums::enum_to_string (type), getOffset (),
                         getLength (), getLine ());
   }
 };
 
-using TokenValueType = std::variant<double, std::string_view>;
+template <TokenType type> class ValueToken;
 
-template <TokenType type> class ValueToken : public Token
+template <> class ValueToken<TokenType::TOKEN_NUMBER> : public Token
 {
-  TokenValueType const m_value;
+  double const m_value;
 
 public:
+  ValueToken (double value, std::uint32_t offset, std::uint32_t length,
+              std::uint32_t line)
+      : Token (offset, length, line), m_value (value)
+  {
+  }
+
   [[nodiscard]] auto
+  getType () const -> TokenType override
+  {
+    return TokenType::TOKEN_NUMBER;
+  }
+
+  [[nodiscard]] inline auto
   toString () const -> std::string override
   {
-    std::string value_string;
-
-    if (auto const *ptr_val = std::get_if<double> (&m_value))
-      {
-        value_string = fmt::format ("{}", *ptr_val);
-      }
-    else if (auto const *ptr_val = std::get_if<std::string_view> (&m_value))
-      {
-        value_string = *ptr_val;
-      }
-
     return fmt::format (
         "[{}]\n - value: {}\n - offset: {}\n - length: {}\n - line: {}",
-        Enums::enum_to_string (getType ()), value_string, getOffset (),
+        Enums::enum_to_string (TokenType::TOKEN_NUMBER), m_value, getOffset (),
         getLength (), getLine ());
   }
 
-  // NUMBER
-  ValueToken (double value, std::uint32_t offset, std::uint32_t length,
-              std::uint32_t line) requires (type == TokenType::TOKEN_NUMBER)
-      : Token (type, offset, length, line), m_value (value)
+  [[nodiscard]] inline auto
+  getValue () const -> double
   {
+    return m_value;
+  }
+};
+
+template <TokenType type>
+requires (type == TokenType::TOKEN_STRING
+          || type == TokenType::TOKEN_IDENTIFIER) class ValueToken<type>
+    : public Token
+{
+  std::string_view const m_value;
+
+public:
+  ValueToken (std::string_view value, std::uint32_t offset,
+              std::uint32_t length, std::uint32_t line)
+      : Token (offset, length, line), m_value (value)
+  {
+  }
+
+  [[nodiscard]] auto
+  getType () const -> TokenType override
+  {
+    return type;
   }
 
   [[nodiscard]] inline auto
-  getValue () const -> double requires (type == TokenType::TOKEN_NUMBER)
+  toString () const -> std::string override
   {
-    return std::get<double> (m_value);
-  }
-
-  // STRING
-  ValueToken (std::string_view value, std::uint32_t offset,
-              std::uint32_t length, std::uint32_t line)
-      requires (type == TokenType::TOKEN_STRING)
-      : Token (type, offset, length, line), m_value (value)
-  {
+    return fmt::format (
+        "[{}]\n - value: {}\n - offset: {}\n - length: {}\n - line: {}",
+        Enums::enum_to_string (type), m_value, getOffset (), getLength (),
+        getLine ());
   }
 
   [[nodiscard]] inline auto
   getValue () const -> std::string_view
-      requires (type == TokenType::TOKEN_STRING)
   {
-    return std::get<std::string_view> (m_value);
-  }
-
-  // IDENTIFIER
-  ValueToken (std::string_view value, std::uint32_t offset,
-              std::uint32_t length, std::uint32_t line)
-      requires (type == TokenType::TOKEN_IDENTIFIER)
-      : Token (type, offset, length, line), m_value (value)
-  {
-  }
-
-  [[nodiscard]] inline auto
-  getValue () const -> std::string_view
-      requires (type == TokenType::TOKEN_IDENTIFIER)
-  {
-    return std::get<std::string_view> (m_value);
+    return m_value;
   }
 };
 
