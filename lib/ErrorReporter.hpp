@@ -7,7 +7,7 @@
 
 class ErrorReporter
 {
-  std::vector<std::string> m_errors;
+  std::vector<std::pair<std::string, std::string> > m_errors;
   std::shared_ptr<std::ostream> m_stream_ptr;
 
 public:
@@ -15,10 +15,7 @@ public:
 
   [[nodiscard]] auto hasError () const -> bool;
   void logErrors () const;
-
-  void setError (std::string const &error, std::uint32_t offset,
-                 std::uint32_t length, std::uint32_t start_line,
-                 std::uint32_t end_line);
+  void setError (std::string const &from, std::string const &msg);
   void clearErrors ();
 };
 
