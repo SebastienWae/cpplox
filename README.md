@@ -1,8 +1,6 @@
 # cpplox
 `cpplox` is an interpreter for the Lox language written in C++.
 
-## Roadmap
-TODO...
 
 ## Installing
 ### Building from source 
@@ -18,11 +16,8 @@ TODO...
   ```
   cd ccplox
   ./externals/vcpkg/bootstrap-vcpkg.sh
-  TODO...
-  ```
-- install binary 
-  ```
-  TODO...
+  cmake --preset config-release
+  cmake --build --preset build-release
   ```
 
 ## Usage
@@ -31,8 +26,8 @@ TODO...
 $ cpplox
 cpplox: Lox interpreter - v0.0.1
 To exit, press Ctrl+d or type "exit"
-> var a = 1
-> print a + 2
+>> var a = 1
+>> print a + 2
 3
 ```
 ### File
@@ -43,80 +38,9 @@ cpplox </path/to/file.lox>
 ## Lox language
 Lox is a language with a C-like syntax that was created by [Robert Nystrom](https://journal.stuffwithstuff.com/) for his book [Crafting Interpreters](https://craftinginterpreters.com/).
 
-A more detailed introduction can be found in [this chapter](https://craftinginterpreters.com/the-lox-language.html).
+A detailed introduction can be found in [chapther 3](https://craftinginterpreters.com/the-lox-language.html) and the grammar in the [Appendix I](https://craftinginterpreters.com/appendix-i.html).
 
-### Lexical grammar
-```ABNF
-NUMBER         → DIGIT+ ( "." DIGIT+ )?
-STRING         → "\"" <any char except "\"">* "\""
-IDENTIFIER     → ALPHA ( ALPHA | DIGIT )*
-ALPHA          → "a" ... "z" | "A" ... "Z" | "_"
-DIGIT          → "0" ... "9"
-```
-
-### Syntax grammar
-```ABNF
-program        → declaration* EOF
-
-
-; declarations
-declaration    → classDecl
-               | funDecl
-               | varDecl
-               | statement
-
-classDecl      → "class" IDENTIFIER ( "<" IDENTIFIER )?
-                 "{" function* "}"
-funDecl        → "fun" function
-varDecl        → "var" IDENTIFIER ( "=" expression )? ";"
-
-
-; statements
-statement      → exprStmt
-               | forStmt
-               | ifStmt
-               | printStmt
-               | returnStmt
-               | whileStmt
-               | block
-
-exprStmt       → expression ";"
-forStmt        → "for" "(" ( varDecl | exprStmt | ";" )
-                           expression? ";"
-                           expression? ")" statement
-ifStmt         → "if" "(" expression ")" statement
-                 ( "else" statement )?
-printStmt      → "print" expression ";"
-returnStmt     → "return" expression? ";"
-whileStmt      → "while" "(" expression ")" statement
-block          → "{" declaration* "}"
-
-
-; expressions
-expression     → assignment
-
-assignment     → ( call "." )? IDENTIFIER "=" assignment
-               | logic_or
-
-logic_or       → logic_and ( "or" logic_and )*
-logic_and      → equality ( "and" equality )*
-equality       → comparison ( ( "!=" | "==" ) comparison )*
-comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )*
-term           → factor ( ( "-" | "+" ) factor )*
-factor         → unary ( ( "/" | "*" ) unary )*
-
-unary          → ( "!" | "-" ) unary | call
-call           → primary ( "(" arguments? ")" | "." IDENTIFIER )*
-primary        → "true" | "false" | "nil" | "this"
-               | NUMBER | STRING | IDENTIFIER | "(" expression ")"
-               | "super" "." IDENTIFIER
-
-
-; utility
-function       → IDENTIFIER "(" parameters? ")" block
-parameters     → IDENTIFIER ( "," IDENTIFIER )*
-arguments      → expression ( "," expression )*
-```
+`cpplox` also implement the [comma](https://en.wikipedia.org/wiki/Comma_operator) and [ternary conditional](https://en.wikipedia.org/wiki/Ternary_conditional_operator) operators.
 
 ### Examples
 More examples are available [here](https://github.com/munificent/craftinginterpreters/tree/master/test).
@@ -161,8 +85,24 @@ class Breakfast {
 }
 ```
 
+```
+var a = 1, b = 2, c = 3;
+var x = (a, b, c);
+print x; 
+```
+
+```
+fun fib(n) {
+  return n < 2 ? n : fib(n - 1) + fib(n - 2);
+}
+```
+
 ## Running the tests
-TODO...
+```sh
+cmake --preset config-debug
+cmake --build --preset test-debug
+ctest --output-on-failure --preset test-debug
+```
 
 ## License
 [GNU General Public License v3.0](/LICENSE)
