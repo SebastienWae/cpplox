@@ -1,3 +1,4 @@
 .cache/
 build/
+include/config.hpp
 compile_commands.json

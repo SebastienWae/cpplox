@@ -7,7 +7,7 @@ project(cpplox
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   configure_file(
     "${PROJECT_SOURCE_DIR}/include/config.hpp.in"
-    "${PROJECT_BINARY_DIR}/include/config.hpp"
+    "${PROJECT_SOURCE_DIR}/include/config.hpp"
   )
 
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -24,7 +24,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   include(CTest)
 endif()
 
-add_subdirectory(src)
+add_subdirectory(app)
 if((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR MODERN_CMAKE_BUILD_TESTING) AND BUILD_TESTING)
   add_subdirectory(test)
 endif()
