@@ -44,14 +44,32 @@
   "buildPresets": [
     {
       "name": "build-debug",
+      "targets": "cpplox_bin",
       "configurePreset": "config-debug"
     },
     {
       "name": "build-sanitize",
+      "targets": "cpplox_bin",
       "configurePreset": "config-sanitize"
     },
     {
       "name": "build-release",
+      "targets": "cpplox_bin",
+      "configurePreset": "config-release"
+    },
+    {
+      "name": "test-debug",
+      "targets": "cpplox_test",
+      "configurePreset": "config-debug"
+    },
+    {
+      "name": "test-sanitize",
+      "targets": "cpplox_test",
+      "configurePreset": "config-sanitize"
+    },
+    {
+      "name": "test-release",
+      "targets": "cpplox_test",
       "configurePreset": "config-release"
     }
   ],
