@@ -1,6 +1,6 @@
-#include "ErrorReporter.hpp"
-#include "Token.hpp"
-#include <Lexer.hpp>
+#include "../lib/Lexer.hpp"
+#include "../lib/ErrorReporter.hpp"
+#include "../lib/Token.hpp"
 #include <doctest/doctest.h>
 #include <fmt/core.h>
 #include <limits>
@@ -98,7 +98,7 @@ TEST_CASE ("lexer")
     CHECK (tokens.empty ());
     REQUIRE (er.hasError ());
     er.logErrors ();
-    CHECK (out_buf.str ().starts_with ("Unterminated string"));
+    CHECK (out_buf.str ().starts_with ("Lexer\nUnterminated string"));
   }
 
   SUBCASE ("numbers literal")
@@ -155,7 +155,8 @@ TEST_CASE ("lexer")
     CHECK (tokens.empty ());
     REQUIRE (er.hasError ());
     er.logErrors ();
-    CHECK (out_buf.str ().starts_with ("Out of range number conversion"));
+    CHECK (
+        out_buf.str ().starts_with ("Lexer\nOut of range number conversion"));
   }
 
   SUBCASE ("valid identifiers")
@@ -191,25 +192,34 @@ TEST_CASE ("lexer")
 
   SUBCASE ("identifier can only start with alpha or underscore")
   {
-    Lexer l ("1var .var", er);
+    Lexer l ("1test .test", er);
 
     auto tokens_opt = l.scanTokens ();
     REQUIRE (tokens_opt.has_value ());
     auto &&tokens = tokens_opt.value ().get ();
 
-    CHECK (tokens.size () != 2);
+    CHECK (tokens.size () == 4);
+    REQUIRE (tokens.at (0)->getType () == TokenType::TOKEN_NUMBER);
+    REQUIRE (tokens.at (1)->getType () == TokenType::TOKEN_IDENTIFIER);
+    REQUIRE (tokens.at (2)->getType () == TokenType::TOKEN_DOT);
+    REQUIRE (tokens.at (3)->getType () == TokenType::TOKEN_IDENTIFIER);
     CHECK (!er.hasError ());
   }
 
   SUBCASE ("identifier can only contain alphanum and underscore")
   {
-    Lexer l ("my-var", er);
+    Lexer l ("my-test my_test my1test", er);
 
     auto tokens_opt = l.scanTokens ();
     REQUIRE (tokens_opt.has_value ());
     auto &&tokens = tokens_opt.value ().get ();
 
-    CHECK (tokens.size () != 1);
+    CHECK (tokens.size () == 5);
+    REQUIRE (tokens.at (0)->getType () == TokenType::TOKEN_IDENTIFIER);
+    REQUIRE (tokens.at (1)->getType () == TokenType::TOKEN_MINUS);
+    REQUIRE (tokens.at (2)->getType () == TokenType::TOKEN_IDENTIFIER);
+    REQUIRE (tokens.at (3)->getType () == TokenType::TOKEN_IDENTIFIER);
+    REQUIRE (tokens.at (4)->getType () == TokenType::TOKEN_IDENTIFIER);
     CHECK (!er.hasError ());
   }
 
@@ -336,7 +346,7 @@ TEST_CASE ("lexer")
     CHECK (tokens.empty ());
     REQUIRE (er.hasError ());
     er.logErrors ();
-    CHECK (out_buf.str ().starts_with ("Unexpected character"));
+    CHECK (out_buf.str ().starts_with ("Lexer\nUnexpected character"));
   }
 
   SUBCASE ("unexpected character in string")
