@@ -40,7 +40,7 @@ Lox is a language with a C-like syntax that was created by [Robert Nystrom](http
 
 A detailed introduction can be found in [chapther 3](https://craftinginterpreters.com/the-lox-language.html) and the grammar in the [Appendix I](https://craftinginterpreters.com/appendix-i.html).
 
-`cpplox` also implement the [comma](https://en.wikipedia.org/wiki/Comma_operator) and [ternary conditional](https://en.wikipedia.org/wiki/Ternary_conditional_operator) operators.
+`cpplox` also implement [block comments](https://en.wikipedia.org/wiki/Comment_(computer_programming)#Block_comment), as well as the [comma](https://en.wikipedia.org/wiki/Comma_operator) and [ternary conditional](https://en.wikipedia.org/wiki/Ternary_conditional_operator) operators.
 
 ### Examples
 More examples are available [here](https://github.com/munificent/craftinginterpreters/tree/master/test).
