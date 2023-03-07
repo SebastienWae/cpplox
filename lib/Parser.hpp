@@ -3,6 +3,7 @@
 
 #include "ErrorReporter.hpp"
 #include "Expression.hpp"
+#include "Statement.hpp"
 #include "Token.hpp"
 #include <memory>
 #include <optional>
@@ -25,9 +26,14 @@ public:
     ParserException (std::string const &what);
   };
 
-  auto parse () -> std::optional<Expression>;
+  auto parse () -> std::optional<std::vector<Statement> >;
 
 private:
+  auto statement () -> Statement;
+
+  auto printStatement () -> PrintStatement;
+  auto expressionStatement () -> ExpressionStatement;
+
   auto expression () -> Expression;
   auto comma () -> Expression;
   auto ternary () -> Expression;

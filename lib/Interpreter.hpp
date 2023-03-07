@@ -3,8 +3,10 @@
 
 #include "ErrorReporter.hpp"
 #include "Expression.hpp"
+#include "Statement.hpp"
 #include <cstddef>
 #include <string>
+#include <vector>
 
 class Interpreter
 {
@@ -13,9 +15,19 @@ public:
       = std::variant<bool, double, std::string, std::nullptr_t>;
 
 private:
+  struct StatementVisitor
   {
+    StatementVisitor (Interpreter &interpreter);
+
+    auto operator() (PrintStatement const &s) -> void;
+    auto operator() (ExpressionStatement const &s) -> void;
+
+  private:
+    Interpreter &m_interpreter;
+  };
 
   struct ExpressionVisitor
+  {
     ExpressionVisitor (Interpreter &interpreter);
 
     auto operator() (Box<LiteralNumberExpression> const &e) -> ExpressionValue;
@@ -121,6 +133,7 @@ private:
     auto operator() ([[maybe_unused]] std::nullptr_t const &v) -> std::string;
   };
 
+  std::vector<Statement> const &m_statements;
 
   ErrorReporter &m_error_reporter;
 
@@ -134,7 +147,7 @@ public:
     InterpreterException (std::string const &what);
   };
 
-  auto interpret () -> std::optional<std::string const>;
+  void interpret ();
 
 private:
   static auto isTruthy (ExpressionValue const &value) -> bool;

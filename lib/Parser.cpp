@@ -1,11 +1,13 @@
 #include "Parser.hpp"
 #include "Expression.hpp"
+#include "Statement.hpp"
 #include "Token.hpp"
 #include <algorithm>
 #include <memory>
 #include <optional>
 #include <stdexcept>
 #include <variant>
+#include <vector>
 
 Parser::Parser (std::vector<std::unique_ptr<Token> > const &tokens,
                 ErrorReporter &error_reporter)
@@ -15,13 +17,25 @@ Parser::Parser (std::vector<std::unique_ptr<Token> > const &tokens,
 }
 
 auto
-Parser::parse () -> std::optional<Expression>
+Parser::parse () -> std::optional<std::vector<Statement> >
 {
   try
     {
-      return expression ();
+      std::vector<Statement> statements;
+
+      auto it_end = m_tokens.end ();
+      while (m_token_it != it_end)
+        {
+          statements.emplace_back (statement ());
+        }
+
+      return statements;
     }
   catch (Parser::ParserException &e)
+    {
+      return std::nullopt;
+    }
+  catch (...)
     {
       m_error_reporter.setError ("Parser", "Unexpected error");
       return std::nullopt;
@@ -29,8 +43,46 @@ Parser::parse () -> std::optional<Expression>
 }
 
 auto
+Parser::statement () -> Statement
+{
+  if (match (TokenType::TOKEN_PRINT))
+    {
+      return printStatement ();
+    }
+
+  return expressionStatement ();
+}
+
+auto
+Parser::printStatement () -> PrintStatement
+{
+  auto value = expression ();
+
+  if (!match (TokenType::TOKEN_SEMICOLON))
+    {
+      throw error (peek (), "';' expected after value");
+    }
+
+  return value;
+}
+
+auto
+Parser::expressionStatement () -> ExpressionStatement
+{
+  auto value = expression ();
+
+  if (!match (TokenType::TOKEN_SEMICOLON))
+    {
+      throw error (peek (), "';' expected after value");
+    }
+
+  return value;
+}
+
+auto
 Parser::expression () -> Expression
 {
+
   return comma ();
 }
 
@@ -48,11 +100,6 @@ Parser::comma () -> Expression
         static_cast<BasicToken<TokenType::TOKEN_COMMA> const *> (op),
         ternary ()
       };
-    }
-
-  if (m_token_it != m_tokens.end ())
-    {
-      throw error (peek (), "Expression expected");
     }
 
   return expr;

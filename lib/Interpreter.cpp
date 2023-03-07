@@ -1,27 +1,31 @@
 #include "Interpreter.hpp"
+#include "Statement.hpp"
 #include <string>
 #include <variant>
 
-Interpreter::Interpreter (Expression const &expression,
+Interpreter::Interpreter (std::vector<Statement> const &statements,
                           ErrorReporter &error_reporter)
-    : m_expression (expression), m_error_reporter (error_reporter),
-      m_visitor (*this)
+    : m_statements (statements), m_error_reporter (error_reporter)
 {
 }
 
-auto
-Interpreter::interpret () -> std::optional<std::string const>
+void
+Interpreter::interpret ()
 {
   try
     {
-      auto value = std::visit (m_visitor, m_expression);
-      StringifyVisitor v;
-      return std::visit (v, value);
+      for (auto statement : m_statements)
+        {
+          StatementVisitor v{ *this };
+          std::visit (v, statement);
+        }
     }
   catch (Interpreter::InterpreterException &e)
     {
+    }
+  catch (...)
+    {
       m_error_reporter.setError ("Interpreter", "Unexpected error");
-      return std::nullopt;
     }
 }
 
@@ -64,6 +68,26 @@ Interpreter::isEqual (ExpressionValue const &left_value,
   return std::visit (v, left_value, right_value);
 }
 
+Interpreter::StatementVisitor::StatementVisitor (Interpreter &interpreter)
+    : m_interpreter (interpreter)
+{
+}
+
+auto
+Interpreter::StatementVisitor::operator() (PrintStatement const &s) -> void
+{
+  ExpressionVisitor expression_visitor{ m_interpreter };
+  ExpressionValue value = std::visit (expression_visitor, s.getExpression ());
+  StringifyVisitor stringify_visitor;
+  std::cout << std::visit (stringify_visitor, value) << std::endl;
+}
+auto
+Interpreter::StatementVisitor::operator() (ExpressionStatement const &s)
+    -> void
+{
+  ExpressionVisitor expression_visitor{ m_interpreter };
+  std::visit (expression_visitor, s.getExpression ());
+}
 
 Interpreter::ExpressionVisitor::ExpressionVisitor (Interpreter &interpreter)
     : m_interpreter (interpreter)

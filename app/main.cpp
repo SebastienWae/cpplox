@@ -27,17 +27,12 @@ run (std::string_view source, ErrorReporter &error_reporter)
   if (!error_reporter.hasError () && tokens.has_value ())
     {
       Parser parser{ tokens.value (), error_reporter };
-      auto expression = parser.parse ();
+      auto statements = parser.parse ();
 
-      if (!error_reporter.hasError () && expression.has_value ())
+      if (!error_reporter.hasError () && statements.has_value ())
         {
-          Interpreter interpreter{ expression.value (), error_reporter };
-          auto value = interpreter.interpret ();
-
-          if (!error_reporter.hasError () && value.has_value ())
-            {
-              std::cout << value.value () << std::endl;
-            }
+          Interpreter interpreter{ statements.value (), error_reporter };
+          interpreter.interpret ();
         }
     }
 }

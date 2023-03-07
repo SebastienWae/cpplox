@@ -5,6 +5,7 @@ set(HEADER_LIST
   "Token.hpp"
   "Lexer.hpp"
   "Expression.hpp"
+  "Statement.hpp"
   "Parser.hpp"
   "Interpreter.hpp"
   "utils/Enums.hpp"
@@ -15,6 +16,7 @@ set(SOURCE_LIST
   "Token.cpp"
   "Lexer.cpp"
   "Expression.cpp"
+  "Statement.cpp"
   "Parser.cpp"
   "Interpreter.cpp")
 
