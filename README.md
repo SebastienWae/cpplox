@@ -42,6 +42,41 @@ A detailed introduction can be found in [chapther 3](https://craftinginterpreter
 
 `cpplox` also implement [block comments](https://en.wikipedia.org/wiki/Comment_(computer_programming)#Block_comment), as well as the [comma](https://en.wikipedia.org/wiki/Comma_operator) and [ternary conditional](https://en.wikipedia.org/wiki/Ternary_conditional_operator) operators.
 
+### Grammar
+#### Lexical
+```
+NUMBER         → DIGIT+ ( "." DIGIT+ )? ;
+STRING         → "\"" <any char except "\"">* "\"" ;
+IDENTIFIER     → ALPHA ( ALPHA | DIGIT )* ;
+ALPHA          → "a" ... "z" | "A" ... "Z" | "_" ;
+DIGIT          → "0" ... "9" ;
+```
+
+#### Syntax
+```
+program        → statement* EOF ;
+
+statement      → exprStmt
+               | printStmt ;
+
+exprStmt       → expression ";" ;
+printStmt      → "print" expression ";" ;
+```
+```
+expression     → comma ;
+comma          → ternary ("," ternary)* ;
+ternary        → equality
+               | equality "?" ternary ":" ternary ;
+equality       → comparison ( ( "!=" | "==" ) comparison )* ;
+comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+term           → factor ( ( "-" | "+" ) factor )* ;
+factor         → unary ( ( "/" | "*" ) unary )* ;
+unary          → ( "!" | "-" ) unary
+               | primary ;
+primary        → NUMBER | STRING | "true" | "false" | "nil"
+               | "(" expression ")" ;
+```
+
 ### Examples
 More examples are available [here](https://github.com/munificent/craftinginterpreters/tree/master/test).
 
