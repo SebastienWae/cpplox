@@ -50,61 +50,68 @@ Interpreter::InterpreterException::InterpreterException (
 }
 
 auto
-Interpreter::isTruthy (ValueType const &value) -> bool
+Interpreter::isTruthy (ExpressionValue const &value) -> bool
 {
   TruthyVisitor v;
   return std::visit (v, value);
 }
 
 auto
-Interpreter::isEqual (ValueType const &left_value,
-                      ValueType const &right_value) -> bool
+Interpreter::isEqual (ExpressionValue const &left_value,
+                      ExpressionValue const &right_value) -> bool
 {
   EqualityVisitor v;
   return std::visit (v, left_value, right_value);
 }
 
+
+Interpreter::ExpressionVisitor::ExpressionVisitor (Interpreter &interpreter)
+    : m_interpreter (interpreter)
+{
+}
+
 auto
-Interpreter::Visitor::operator() (Box<LiteralNumberExpression> const &e)
-    -> ValueType
+Interpreter::ExpressionVisitor::operator() (
+    Box<LiteralNumberExpression> const &e) -> ExpressionValue
 {
   return e->getValue ();
 }
 auto
-Interpreter::Visitor::operator() (
-    [[maybe_unused]] Box<LiteralStringExpression> const &e) -> ValueType
+Interpreter::ExpressionVisitor::operator() (
+    [[maybe_unused]] Box<LiteralStringExpression> const &e) -> ExpressionValue
 {
   return std::string{ e->getValue () };
 }
 auto
-Interpreter::Visitor::operator() (
+Interpreter::ExpressionVisitor::operator() (
     [[maybe_unused]] Box<LiteralExpression<TokenType::TOKEN_TRUE> > const &e)
-    -> ValueType
+    -> ExpressionValue
 {
   return true;
 }
 auto
-Interpreter::Visitor::operator() (
+Interpreter::ExpressionVisitor::operator() (
     [[maybe_unused]] Box<LiteralExpression<TokenType::TOKEN_FALSE> > const &e)
-    -> ValueType
+    -> ExpressionValue
 {
   return false;
 }
 auto
-Interpreter::Visitor::operator() (
+Interpreter::ExpressionVisitor::operator() (
     [[maybe_unused]] Box<LiteralExpression<TokenType::TOKEN_NIL> > const &e)
-    -> ValueType
+    -> ExpressionValue
 {
   return nullptr;
 }
 auto
-Interpreter::Visitor::operator() (Box<GroupingExpression> const &e)
-    -> ValueType
+Interpreter::ExpressionVisitor::operator() (Box<GroupingExpression> const &e)
+    -> ExpressionValue
 {
   return std::visit (*this, e->getExpression ());
 }
 auto
-Interpreter::Visitor::operator() (Box<TernaryExpression> const &e) -> ValueType
+Interpreter::ExpressionVisitor::operator() (Box<TernaryExpression> const &e)
+    -> ExpressionValue
 {
   auto condition_value = std::visit (*this, e->getConditionExpression ());
 
@@ -115,8 +122,8 @@ Interpreter::Visitor::operator() (Box<TernaryExpression> const &e) -> ValueType
   return std::visit (*this, e->getFalseExpression ());
 }
 auto
-Interpreter::Visitor::operator() (
-    Box<UnaryExpression<TokenType::TOKEN_MINUS> > const &e) -> ValueType
+Interpreter::ExpressionVisitor::operator() (
+    Box<UnaryExpression<TokenType::TOKEN_MINUS> > const &e) -> ExpressionValue
 {
   auto right_value = std::visit (*this, e->getExpression ());
 
@@ -128,16 +135,17 @@ Interpreter::Visitor::operator() (
   throw m_interpreter.error (e->getOperator (), "Operand must be a number");
 }
 auto
-Interpreter::Visitor::operator() (
-    Box<UnaryExpression<TokenType::TOKEN_BANG> > const &e) -> ValueType
+Interpreter::ExpressionVisitor::operator() (
+    Box<UnaryExpression<TokenType::TOKEN_BANG> > const &e) -> ExpressionValue
 {
   auto right_value = std::visit (*this, e->getExpression ());
 
   return !isTruthy (right_value);
 }
 auto
-Interpreter::Visitor::operator() (
-    Box<BinaryExpression<TokenType::TOKEN_EQUAL_EQUAL> > const &e) -> ValueType
+Interpreter::ExpressionVisitor::operator() (
+    Box<BinaryExpression<TokenType::TOKEN_EQUAL_EQUAL> > const &e)
+    -> ExpressionValue
 {
   auto left_value = std::visit (*this, e->getLeftExpression ());
   auto right_value = std::visit (*this, e->getRightExpression ());
@@ -145,8 +153,9 @@ Interpreter::Visitor::operator() (
   return isEqual (left_value, right_value);
 }
 auto
-Interpreter::Visitor::operator() (
-    Box<BinaryExpression<TokenType::TOKEN_BANG_EQUAL> > const &e) -> ValueType
+Interpreter::ExpressionVisitor::operator() (
+    Box<BinaryExpression<TokenType::TOKEN_BANG_EQUAL> > const &e)
+    -> ExpressionValue
 {
   auto left_value = std::visit (*this, e->getLeftExpression ());
   auto right_value = std::visit (*this, e->getRightExpression ());
@@ -154,8 +163,8 @@ Interpreter::Visitor::operator() (
   return !isEqual (left_value, right_value);
 }
 auto
-Interpreter::Visitor::operator() (
-    Box<BinaryExpression<TokenType::TOKEN_LESS> > const &e) -> ValueType
+Interpreter::ExpressionVisitor::operator() (
+    Box<BinaryExpression<TokenType::TOKEN_LESS> > const &e) -> ExpressionValue
 {
   auto left_value = std::visit (*this, e->getLeftExpression ());
   auto right_value = std::visit (*this, e->getRightExpression ());
@@ -170,8 +179,9 @@ Interpreter::Visitor::operator() (
   throw m_interpreter.error (e->getOperator (), "Operands must be numbers");
 }
 auto
-Interpreter::Visitor::operator() (
-    Box<BinaryExpression<TokenType::TOKEN_LESS_EQUAL> > const &e) -> ValueType
+Interpreter::ExpressionVisitor::operator() (
+    Box<BinaryExpression<TokenType::TOKEN_LESS_EQUAL> > const &e)
+    -> ExpressionValue
 {
   auto left_value = std::visit (*this, e->getLeftExpression ());
   auto right_value = std::visit (*this, e->getRightExpression ());
@@ -186,8 +196,9 @@ Interpreter::Visitor::operator() (
   throw m_interpreter.error (e->getOperator (), "Operands must be numbers");
 }
 auto
-Interpreter::Visitor::operator() (
-    Box<BinaryExpression<TokenType::TOKEN_GREATER> > const &e) -> ValueType
+Interpreter::ExpressionVisitor::operator() (
+    Box<BinaryExpression<TokenType::TOKEN_GREATER> > const &e)
+    -> ExpressionValue
 {
   auto left_value = std::visit (*this, e->getLeftExpression ());
   auto right_value = std::visit (*this, e->getRightExpression ());
@@ -202,9 +213,9 @@ Interpreter::Visitor::operator() (
   throw m_interpreter.error (e->getOperator (), "Operands must be numbers");
 }
 auto
-Interpreter::Visitor::operator() (
+Interpreter::ExpressionVisitor::operator() (
     Box<BinaryExpression<TokenType::TOKEN_GREATER_EQUAL> > const &e)
-    -> ValueType
+    -> ExpressionValue
 {
   auto left_value = std::visit (*this, e->getLeftExpression ());
   auto right_value = std::visit (*this, e->getRightExpression ());
@@ -219,8 +230,8 @@ Interpreter::Visitor::operator() (
   throw m_interpreter.error (e->getOperator (), "Operands must be numbers");
 }
 auto
-Interpreter::Visitor::operator() (
-    Box<BinaryExpression<TokenType::TOKEN_PLUS> > const &e) -> ValueType
+Interpreter::ExpressionVisitor::operator() (
+    Box<BinaryExpression<TokenType::TOKEN_PLUS> > const &e) -> ExpressionValue
 {
   auto left_value = std::visit (*this, e->getLeftExpression ());
   auto right_value = std::visit (*this, e->getRightExpression ());
@@ -243,8 +254,8 @@ Interpreter::Visitor::operator() (
                              "Operands must be two numbers or two strings");
 }
 auto
-Interpreter::Visitor::operator() (
-    Box<BinaryExpression<TokenType::TOKEN_MINUS> > const &e) -> ValueType
+Interpreter::ExpressionVisitor::operator() (
+    Box<BinaryExpression<TokenType::TOKEN_MINUS> > const &e) -> ExpressionValue
 {
   auto left_value = std::visit (*this, e->getLeftExpression ());
   auto right_value = std::visit (*this, e->getRightExpression ());
@@ -259,8 +270,8 @@ Interpreter::Visitor::operator() (
   throw m_interpreter.error (e->getOperator (), "Operands must be numbers");
 }
 auto
-Interpreter::Visitor::operator() (
-    Box<BinaryExpression<TokenType::TOKEN_STAR> > const &e) -> ValueType
+Interpreter::ExpressionVisitor::operator() (
+    Box<BinaryExpression<TokenType::TOKEN_STAR> > const &e) -> ExpressionValue
 {
   auto left_value = std::visit (*this, e->getLeftExpression ());
   auto right_value = std::visit (*this, e->getRightExpression ());
@@ -275,8 +286,8 @@ Interpreter::Visitor::operator() (
   throw m_interpreter.error (e->getOperator (), "Operands must be numbers");
 }
 auto
-Interpreter::Visitor::operator() (
-    Box<BinaryExpression<TokenType::TOKEN_SLASH> > const &e) -> ValueType
+Interpreter::ExpressionVisitor::operator() (
+    Box<BinaryExpression<TokenType::TOKEN_SLASH> > const &e) -> ExpressionValue
 {
   auto left_value = std::visit (*this, e->getLeftExpression ());
   auto right_value = std::visit (*this, e->getRightExpression ());
@@ -291,8 +302,8 @@ Interpreter::Visitor::operator() (
   throw m_interpreter.error (e->getOperator (), "Operands must be numbers");
 }
 auto
-Interpreter::Visitor::operator() (
-    Box<BinaryExpression<TokenType::TOKEN_COMMA> > const &e) -> ValueType
+Interpreter::ExpressionVisitor::operator() (
+    Box<BinaryExpression<TokenType::TOKEN_COMMA> > const &e) -> ExpressionValue
 {
   std::visit (*this, e->getLeftExpression ());
   return std::visit (*this, e->getRightExpression ());

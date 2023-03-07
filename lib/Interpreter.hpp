@@ -9,58 +9,60 @@
 class Interpreter
 {
 public:
-  using ValueType = std::variant<bool, double, std::string, std::nullptr_t>;
+  using ExpressionValue
+      = std::variant<bool, double, std::string, std::nullptr_t>;
 
 private:
-  struct Visitor
   {
-    Visitor (Interpreter &interpreter) : m_interpreter (interpreter) {}
 
-    auto operator() (Box<LiteralNumberExpression> const &e) -> ValueType;
+  struct ExpressionVisitor
+    ExpressionVisitor (Interpreter &interpreter);
+
+    auto operator() (Box<LiteralNumberExpression> const &e) -> ExpressionValue;
     auto operator() ([[maybe_unused]] Box<LiteralStringExpression> const &e)
-        -> ValueType;
+        -> ExpressionValue;
     auto operator() (
         [[maybe_unused]] Box<LiteralExpression<TokenType::TOKEN_TRUE> > const
-            &e) -> ValueType;
+            &e) -> ExpressionValue;
 
     auto operator() (
         [[maybe_unused]] Box<LiteralExpression<TokenType::TOKEN_FALSE> > const
-            &e) -> ValueType;
+            &e) -> ExpressionValue;
     auto operator() (
         [[maybe_unused]] Box<LiteralExpression<TokenType::TOKEN_NIL> > const
-            &e) -> ValueType;
-    auto operator() (Box<GroupingExpression> const &e) -> ValueType;
-    auto operator() (Box<TernaryExpression> const &e) -> ValueType;
+            &e) -> ExpressionValue;
+    auto operator() (Box<GroupingExpression> const &e) -> ExpressionValue;
+    auto operator() (Box<TernaryExpression> const &e) -> ExpressionValue;
     auto operator() (Box<UnaryExpression<TokenType::TOKEN_MINUS> > const &e)
-        -> ValueType;
+        -> ExpressionValue;
     auto operator() (Box<UnaryExpression<TokenType::TOKEN_BANG> > const &e)
-        -> ValueType;
+        -> ExpressionValue;
     auto
     operator() (Box<BinaryExpression<TokenType::TOKEN_EQUAL_EQUAL> > const &e)
-        -> ValueType;
+        -> ExpressionValue;
     auto
     operator() (Box<BinaryExpression<TokenType::TOKEN_BANG_EQUAL> > const &e)
-        -> ValueType;
+        -> ExpressionValue;
     auto operator() (Box<BinaryExpression<TokenType::TOKEN_LESS> > const &e)
-        -> ValueType;
+        -> ExpressionValue;
     auto
     operator() (Box<BinaryExpression<TokenType::TOKEN_LESS_EQUAL> > const &e)
-        -> ValueType;
+        -> ExpressionValue;
     auto operator() (Box<BinaryExpression<TokenType::TOKEN_GREATER> > const &e)
-        -> ValueType;
+        -> ExpressionValue;
     auto operator() (
         Box<BinaryExpression<TokenType::TOKEN_GREATER_EQUAL> > const &e)
-        -> ValueType;
+        -> ExpressionValue;
     auto operator() (Box<BinaryExpression<TokenType::TOKEN_PLUS> > const &e)
-        -> ValueType;
+        -> ExpressionValue;
     auto operator() (Box<BinaryExpression<TokenType::TOKEN_MINUS> > const &e)
-        -> ValueType;
+        -> ExpressionValue;
     auto operator() (Box<BinaryExpression<TokenType::TOKEN_STAR> > const &e)
-        -> ValueType;
+        -> ExpressionValue;
     auto operator() (Box<BinaryExpression<TokenType::TOKEN_SLASH> > const &e)
-        -> ValueType;
+        -> ExpressionValue;
     auto operator() (Box<BinaryExpression<TokenType::TOKEN_COMMA> > const &e)
-        -> ValueType;
+        -> ExpressionValue;
 
   private:
     Interpreter &m_interpreter;
@@ -119,13 +121,12 @@ private:
     auto operator() ([[maybe_unused]] std::nullptr_t const &v) -> std::string;
   };
 
-  Expression const &m_expression;
+
   ErrorReporter &m_error_reporter;
 
-  Visitor m_visitor;
-
 public:
-  Interpreter (Expression const &expression, ErrorReporter &error_reporter);
+  Interpreter (std::vector<Statement> const &statements,
+               ErrorReporter &error_reporter);
 
   class InterpreterException : public std::runtime_error
   {
@@ -136,9 +137,9 @@ public:
   auto interpret () -> std::optional<std::string const>;
 
 private:
-  static auto isTruthy (ValueType const &value) -> bool;
-  static auto isEqual (ValueType const &left_value,
-                       ValueType const &right_value) -> bool;
+  static auto isTruthy (ExpressionValue const &value) -> bool;
+  static auto isEqual (ExpressionValue const &left_value,
+                       ExpressionValue const &right_value) -> bool;
 
   auto error (std::optional<Token const *> token, std::string const &msg)
       -> InterpreterException;
