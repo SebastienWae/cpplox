@@ -9,6 +9,27 @@
 #include <utility>
 #include <variant>
 
+/*
+NUMBER         → DIGIT+ ( "." DIGIT+ )? ;
+STRING         → "\"" <any char except "\"">* "\"" ;
+IDENTIFIER     → ALPHA ( ALPHA | DIGIT )* ;
+ALPHA          → "a" ... "z" | "A" ... "Z" | "_" ;
+DIGIT          → "0" ... "9" ;
+
+expression     → comma ;
+comma          → ternary ("," ternary)* ;
+ternary        → equality
+               | equality "?" ternary ":" ternary ;
+equality       → comparison ( ( "!=" | "==" ) comparison )* ;
+comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+term           → factor ( ( "-" | "+" ) factor )* ;
+factor         → unary ( ( "/" | "*" ) unary )* ;
+unary          → ( "!" | "-" ) unary
+               | primary ;
+primary        → NUMBER | STRING | "true" | "false" | "nil"
+               | "(" expression ")" ;
+*/
+
 class LiteralNumberExpression;
 class LiteralStringExpression;
 template <TokenType type>
@@ -55,13 +76,9 @@ class LiteralNumberExpression
   double const m_value;
 
 public:
-  LiteralNumberExpression (double value) : m_value (value){};
+  LiteralNumberExpression (double value);
 
-  [[nodiscard]] auto
-  getValue () const -> double
-  {
-    return m_value;
-  }
+  [[nodiscard]] auto getValue () const -> double;
 };
 
 class LiteralStringExpression
@@ -69,13 +86,9 @@ class LiteralStringExpression
   std::string_view const m_value;
 
 public:
-  LiteralStringExpression (std::string_view value) : m_value (value){};
+  LiteralStringExpression (std::string_view value);
 
-  [[nodiscard]] auto
-  getValue () const -> std::string_view
-  {
-    return m_value;
-  }
+  [[nodiscard]] auto getValue () const -> std::string_view;
 };
 
 template <TokenType type>
@@ -89,13 +102,9 @@ class GroupingExpression
   Expression const m_expr;
 
 public:
-  GroupingExpression (Expression &&expr) : m_expr (expr) {}
+  GroupingExpression (Expression &&expr);
 
-  [[nodiscard]] auto
-  getExpression () const -> Expression const &
-  {
-    return m_expr;
-  }
+  [[nodiscard]] auto getExpression () const -> Expression const &;
 };
 
 template <TokenType type>
@@ -117,7 +126,7 @@ public:
     return m_right_expr;
   }
 
-  auto
+  [[nodiscard]] auto
   getOperator () const -> BasicToken<type> const *
   {
     return m_operator;
@@ -173,27 +182,13 @@ class TernaryExpression
 
 public:
   TernaryExpression (Expression &&condition, Expression &&true_expr,
-                     Expression &&false_expr)
-      : m_condition (condition), m_true_expr (true_expr),
-        m_false_expr (false_expr)
-  {
-  }
+                     Expression &&false_expr);
 
-  [[nodiscard]] auto
-  getConditionExpression () const -> Expression const &
-  {
-    return m_condition;
-  }
-  [[nodiscard]] auto
-  getTrueExpression () const -> Expression const &
-  {
-    return m_true_expr;
-  }
-  [[nodiscard]] auto
-  getFalseExpression () const -> Expression const &
-  {
-    return m_false_expr;
-  }
+  [[nodiscard]] auto getConditionExpression () const -> Expression const &;
+
+  [[nodiscard]] auto getTrueExpression () const -> Expression const &;
+
+  [[nodiscard]] auto getFalseExpression () const -> Expression const &;
 };
 
 #endif /* CPPLOX_EXPRESSION_HPP */

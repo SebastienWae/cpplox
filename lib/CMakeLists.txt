@@ -14,6 +14,7 @@ set(SOURCE_LIST
   "ErrorReporter.cpp"
   "Token.cpp"
   "Lexer.cpp"
+  "Expression.cpp"
   "Parser.cpp"
   "Interpreter.cpp")
 
