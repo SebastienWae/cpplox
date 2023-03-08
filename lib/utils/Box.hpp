@@ -8,14 +8,14 @@ template <typename T> class Box
   std::unique_ptr<T> m_impl;
 
 public:
-  Box (T &&obj) : m_impl (new T (std::move (obj))) {}
-  Box (const T &obj) : m_impl (new T (obj)) {}
+  Box (T &&obj) : m_impl (std::make_unique<T> (std::move (obj))) {}
+  Box (const T &obj) : m_impl (std::make_unique<T> (obj)) {}
 
   Box (const Box &other) : Box (*other.m_impl) {}
   auto
   operator= (const Box &other) -> Box &
   {
-    if (other == this)
+    if (&other == this)
       {
         return *this;
       }
