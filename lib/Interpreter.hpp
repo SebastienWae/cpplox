@@ -8,6 +8,8 @@
 #include <string>
 #include <vector>
 
+class Environment;
+
 class Interpreter
 {
 public:
@@ -19,8 +21,9 @@ private:
   {
     StatementVisitor (Interpreter &interpreter);
 
-    auto operator() (PrintStatement const &s) -> void;
-    auto operator() (ExpressionStatement const &s) -> void;
+    auto operator() (Box<PrintStatement> const &s) -> void;
+    auto operator() (Box<ExpressionStatement> const &s) -> void;
+    auto operator() (Box<VariableDeclaration> const &s) -> void;
 
   private:
     Interpreter &m_interpreter;
@@ -36,15 +39,16 @@ private:
     auto operator() (
         [[maybe_unused]] Box<LiteralExpression<TokenType::TOKEN_TRUE> > const
             &e) -> ExpressionValue;
-
     auto operator() (
         [[maybe_unused]] Box<LiteralExpression<TokenType::TOKEN_FALSE> > const
             &e) -> ExpressionValue;
     auto operator() (
         [[maybe_unused]] Box<LiteralExpression<TokenType::TOKEN_NIL> > const
             &e) -> ExpressionValue;
+    auto operator() (Box<VariableExpression> const &e) -> ExpressionValue;
     auto operator() (Box<GroupingExpression> const &e) -> ExpressionValue;
     auto operator() (Box<TernaryExpression> const &e) -> ExpressionValue;
+    auto operator() (Box<AssignExpression> const &e) -> ExpressionValue;
     auto operator() (Box<UnaryExpression<TokenType::TOKEN_MINUS> > const &e)
         -> ExpressionValue;
     auto operator() (Box<UnaryExpression<TokenType::TOKEN_BANG> > const &e)
@@ -134,12 +138,18 @@ private:
   };
 
   std::vector<Statement> const &m_statements;
+  std::unique_ptr<Environment> m_environment;
 
   ErrorReporter &m_error_reporter;
 
 public:
   Interpreter (std::vector<Statement> const &statements,
                ErrorReporter &error_reporter);
+  Interpreter (const Interpreter &) = delete;
+  Interpreter (Interpreter &&) = delete;
+  auto operator= (const Interpreter &) -> Interpreter & = delete;
+  auto operator= (Interpreter &&) -> Interpreter & = delete;
+  ~Interpreter ();
 
   class InterpreterException : public std::runtime_error
   {

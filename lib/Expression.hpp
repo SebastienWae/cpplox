@@ -16,10 +16,10 @@ IDENTIFIER     → ALPHA ( ALPHA | DIGIT )* ;
 ALPHA          → "a" ... "z" | "A" ... "Z" | "_" ;
 DIGIT          → "0" ... "9" ;
 
-expression     → comma ;
-comma          → ternary ("," ternary)* ;
-ternary        → equality
-               | equality "?" ternary ":" ternary ;
+expression     → assignment ( "," expression )* ;
+assignment     → IDENTIFIER "=" assignment
+               | equality "?" assignment ":" assignment
+               | equality ;
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           → factor ( ( "-" | "+" ) factor )* ;
@@ -27,7 +27,8 @@ factor         → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary
                | primary ;
 primary        → NUMBER | STRING | "true" | "false" | "nil"
-               | "(" expression ")" ;
+               | "(" expression ")"
+               | IDENTIFIER ;
 */
 
 class LiteralNumberExpression;
@@ -35,6 +36,7 @@ class LiteralStringExpression;
 template <TokenType type>
 requires (type == TokenType::TOKEN_TRUE || type == TokenType::TOKEN_FALSE
           || type == TokenType::TOKEN_NIL) class LiteralExpression;
+class VariableExpression;
 class GroupingExpression;
 template <TokenType type>
 requires (type == TokenType::TOKEN_MINUS
@@ -50,13 +52,15 @@ requires (type == TokenType::TOKEN_EQUAL_EQUAL
           || type == TokenType::TOKEN_STAR || type == TokenType::TOKEN_SLASH
           || type == TokenType::TOKEN_COMMA) class BinaryExpression;
 class TernaryExpression;
+class AssignExpression;
 
 using Expression
     = std::variant<Box<LiteralNumberExpression>, Box<LiteralStringExpression>,
                    Box<LiteralExpression<TokenType::TOKEN_TRUE> >,
                    Box<LiteralExpression<TokenType::TOKEN_FALSE> >,
                    Box<LiteralExpression<TokenType::TOKEN_NIL> >,
-                   Box<GroupingExpression>, Box<TernaryExpression>,
+                   Box<VariableExpression>, Box<GroupingExpression>,
+                   Box<TernaryExpression>, Box<AssignExpression>,
                    Box<UnaryExpression<TokenType::TOKEN_MINUS> >,
                    Box<UnaryExpression<TokenType::TOKEN_BANG> >,
                    Box<BinaryExpression<TokenType::TOKEN_EQUAL_EQUAL> >,
@@ -73,7 +77,7 @@ using Expression
 
 class LiteralNumberExpression
 {
-  double const m_value;
+  double m_value;
 
 public:
   LiteralNumberExpression (double value);
@@ -83,7 +87,7 @@ public:
 
 class LiteralStringExpression
 {
-  std::string_view const m_value;
+  std::string_view m_value;
 
 public:
   LiteralStringExpression (std::string_view value);
@@ -97,9 +101,22 @@ requires (type == TokenType::TOKEN_TRUE || type == TokenType::TOKEN_FALSE
 {
 };
 
+class VariableExpression
+{
+  ValueToken<TokenType::TOKEN_IDENTIFIER> *m_identifier;
+
+public:
+  VariableExpression (ValueToken<TokenType::TOKEN_IDENTIFIER> *identifier);
+
+  [[nodiscard]] auto getName () const -> std::string_view;
+
+  [[nodiscard]] auto getIdentifier () const
+      -> ValueToken<TokenType::TOKEN_IDENTIFIER> *;
+};
+
 class GroupingExpression
 {
-  Expression const m_expr;
+  Expression m_expr;
 
 public:
   GroupingExpression (Expression &&expr);
@@ -111,11 +128,11 @@ template <TokenType type>
 requires (type == TokenType::TOKEN_MINUS
           || type == TokenType::TOKEN_BANG) class UnaryExpression
 {
-  BasicToken<type> const *m_operator;
-  Expression const m_right_expr;
+  BasicToken<type> *m_operator;
+  Expression m_right_expr;
 
 public:
-  UnaryExpression (BasicToken<type> const *op, Expression &&expr)
+  UnaryExpression (BasicToken<type> *op, Expression &&expr)
       : m_operator (op), m_right_expr (expr)
   {
   }
@@ -127,7 +144,7 @@ public:
   }
 
   [[nodiscard]] auto
-  getOperator () const -> BasicToken<type> const *
+  getOperator () const -> BasicToken<type> *
   {
     return m_operator;
   }
@@ -144,12 +161,12 @@ requires (type == TokenType::TOKEN_EQUAL_EQUAL
           || type == TokenType::TOKEN_STAR || type == TokenType::TOKEN_SLASH
           || type == TokenType::TOKEN_COMMA) class BinaryExpression
 {
-  Expression const m_left_expr;
-  BasicToken<type> const *m_operator;
-  Expression const m_right_expr;
+  Expression m_left_expr;
+  BasicToken<type> *m_operator;
+  Expression m_right_expr;
 
 public:
-  BinaryExpression (Expression &&left_expr, BasicToken<type> const *op,
+  BinaryExpression (Expression &&left_expr, BasicToken<type> *op,
                     Expression &&right_expr)
       : m_left_expr (left_expr), m_operator (op), m_right_expr (right_expr)
   {
@@ -168,7 +185,7 @@ public:
   }
 
   auto
-  getOperator () const -> BasicToken<type> const *
+  getOperator () const -> BasicToken<type> *
   {
     return m_operator;
   }
@@ -176,9 +193,9 @@ public:
 
 class TernaryExpression
 {
-  Expression const m_condition;
-  Expression const m_true_expr;
-  Expression const m_false_expr;
+  Expression m_condition;
+  Expression m_true_expr;
+  Expression m_false_expr;
 
 public:
   TernaryExpression (Expression &&condition, Expression &&true_expr,
@@ -189,6 +206,21 @@ public:
   [[nodiscard]] auto getTrueExpression () const -> Expression const &;
 
   [[nodiscard]] auto getFalseExpression () const -> Expression const &;
+};
+
+class AssignExpression
+{
+  ValueToken<TokenType::TOKEN_IDENTIFIER> *m_identifier;
+  Expression m_value;
+
+public:
+  AssignExpression (ValueToken<TokenType::TOKEN_IDENTIFIER> *identifier,
+                    Expression &&value);
+
+  [[nodiscard]] auto getName () const -> std::string_view;
+  [[nodiscard]] auto getValue () const -> Expression const &;
+  [[nodiscard]] auto getIdentifier () const
+      -> ValueToken<TokenType::TOKEN_IDENTIFIER> *;
 };
 
 #endif /* CPPLOX_EXPRESSION_HPP */

@@ -1,13 +1,18 @@
 #include "Interpreter.hpp"
+#include "Environment.hpp"
 #include "Statement.hpp"
+#include <memory>
 #include <string>
 #include <variant>
 
 Interpreter::Interpreter (std::vector<Statement> const &statements,
                           ErrorReporter &error_reporter)
-    : m_statements (statements), m_error_reporter (error_reporter)
+    : m_statements (statements), m_error_reporter (error_reporter),
+      m_environment (std::make_unique<Environment> (error_reporter))
 {
 }
+
+Interpreter::~Interpreter () = default;
 
 void
 Interpreter::interpret ()
@@ -21,6 +26,9 @@ Interpreter::interpret ()
         }
     }
   catch (Interpreter::InterpreterException &e)
+    {
+    }
+  catch (Environment::EnvironmentException &e)
     {
     }
   catch (...)
@@ -74,19 +82,34 @@ Interpreter::StatementVisitor::StatementVisitor (Interpreter &interpreter)
 }
 
 auto
-Interpreter::StatementVisitor::operator() (PrintStatement const &s) -> void
+Interpreter::StatementVisitor::operator() (Box<PrintStatement> const &s)
+    -> void
 {
   ExpressionVisitor expression_visitor{ m_interpreter };
-  ExpressionValue value = std::visit (expression_visitor, s.getExpression ());
+  ExpressionValue value = std::visit (expression_visitor, s->getExpression ());
   StringifyVisitor stringify_visitor;
   std::cout << std::visit (stringify_visitor, value) << std::endl;
 }
 auto
-Interpreter::StatementVisitor::operator() (ExpressionStatement const &s)
+Interpreter::StatementVisitor::operator() (Box<ExpressionStatement> const &s)
     -> void
 {
   ExpressionVisitor expression_visitor{ m_interpreter };
-  std::visit (expression_visitor, s.getExpression ());
+  std::visit (expression_visitor, s->getExpression ());
+}
+
+auto
+Interpreter::StatementVisitor::operator() (Box<VariableDeclaration> const &s)
+    -> void
+{
+  auto initializer = s->getInitializer ();
+  std::optional<ExpressionValue> value = std::nullopt;
+  if (initializer.has_value ())
+    {
+      ExpressionVisitor expression_visitor{ m_interpreter };
+      value = std::visit (expression_visitor, initializer.value ());
+    }
+  m_interpreter.m_environment->define (s->getName (), value);
 }
 
 Interpreter::ExpressionVisitor::ExpressionVisitor (Interpreter &interpreter)
@@ -128,6 +151,21 @@ Interpreter::ExpressionVisitor::operator() (
   return nullptr;
 }
 auto
+Interpreter::ExpressionVisitor::operator() (Box<VariableExpression> const &e)
+    -> ExpressionValue
+{
+  auto value = m_interpreter.m_environment->get (e);
+
+  if (value.has_value ())
+    {
+      return value.value ();
+    }
+
+  throw m_interpreter.error (
+      e->getIdentifier (),
+      fmt::format ("Undefined variable '{}'", e->getName ()));
+}
+auto
 Interpreter::ExpressionVisitor::operator() (Box<GroupingExpression> const &e)
     -> ExpressionValue
 {
@@ -144,6 +182,14 @@ Interpreter::ExpressionVisitor::operator() (Box<TernaryExpression> const &e)
       return std::visit (*this, e->getTrueExpression ());
     }
   return std::visit (*this, e->getFalseExpression ());
+}
+auto
+Interpreter::ExpressionVisitor::operator() (Box<AssignExpression> const &e)
+    -> ExpressionValue
+{
+  auto value = std::visit (*this, e->getValue ());
+  m_interpreter.m_environment->assign (e, value);
+  return value;
 }
 auto
 Interpreter::ExpressionVisitor::operator() (

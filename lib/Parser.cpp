@@ -3,6 +3,7 @@
 #include "Statement.hpp"
 #include "Token.hpp"
 #include <algorithm>
+#include <iterator>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -26,7 +27,7 @@ Parser::parse () -> std::optional<std::vector<Statement> >
       auto it_end = m_tokens.end ();
       while (m_token_it != it_end)
         {
-          statements.emplace_back (statement ());
+          declarations (statements);
         }
 
       return statements;
@@ -40,6 +41,57 @@ Parser::parse () -> std::optional<std::vector<Statement> >
       m_error_reporter.setError ("Parser", "Unexpected error");
       return std::nullopt;
     }
+}
+
+void
+Parser::declarations (std::vector<Statement> &statements)
+{
+  try
+    {
+      if (match (TokenType::TOKEN_VAR))
+        {
+          statements.emplace_back (variableDeclaration ());
+          while (match (TokenType::TOKEN_COMMA))
+            {
+              statements.emplace_back (variableDeclaration ());
+            }
+        }
+      else
+        {
+          statements.emplace_back (statement ());
+        }
+    }
+  catch (Parser::ParserException &e)
+    {
+      synchronize ();
+    }
+}
+
+auto
+Parser::variableDeclaration () -> VariableDeclaration
+{
+  if (!match (TokenType::TOKEN_IDENTIFIER))
+    {
+      throw error (peek (), "Variable name expected");
+    }
+
+  auto *id = static_cast<ValueToken<TokenType::TOKEN_IDENTIFIER> *> (
+      previous ().value ());
+
+  if (match (TokenType::TOKEN_EQUAL))
+    {
+      auto initializer = assign ();
+      if (match ({ TokenType::TOKEN_SEMICOLON, TokenType::TOKEN_COMMA }))
+        {
+          return { id, std::move (initializer) };
+        }
+    }
+  else if (match (TokenType::TOKEN_SEMICOLON))
+    {
+      return { id };
+    }
+
+  throw error (peek (), "';' expected after value");
 }
 
 auto
@@ -82,23 +134,15 @@ Parser::expressionStatement () -> ExpressionStatement
 auto
 Parser::expression () -> Expression
 {
-
-  return comma ();
-}
-
-auto
-Parser::comma () -> Expression
-{
-  auto expr = ternary ();
+  auto expr = assign ();
 
   while (match (TokenType::TOKEN_COMMA))
     {
-      auto const *op = previous ().value ();
+      auto *op = previous ().value ();
 
       expr = BinaryExpression<TokenType::TOKEN_COMMA>{
         std::move (expr),
-        static_cast<BasicToken<TokenType::TOKEN_COMMA> const *> (op),
-        ternary ()
+        static_cast<BasicToken<TokenType::TOKEN_COMMA> *> (op), expression ()
       };
     }
 
@@ -106,18 +150,30 @@ Parser::comma () -> Expression
 }
 
 auto
-Parser::ternary () -> Expression
+Parser::assign () -> Expression
 {
   auto expr = equality ();
 
+  if (match (TokenType::TOKEN_EQUAL))
+    {
+      if (auto *expr_ptr = std::get_if<Box<VariableExpression> > (&expr))
+        {
+          auto value = assign ();
+          return AssignExpression{ (*expr_ptr)->getIdentifier (),
+                                   std::move (value) };
+        }
+
+      throw error (peek (), "Invalid assignment target");
+    }
+
   while (match (TokenType::TOKEN_QUESTION))
     {
-      auto left = ternary ();
+      auto left = assign ();
 
       if (match (TokenType::TOKEN_COLON))
         {
           expr = TernaryExpression{ std::move (expr), std::move (left),
-                                    ternary () };
+                                    assign () };
         }
       else
         {
@@ -135,14 +191,14 @@ Parser::equality () -> Expression
 
   while (match ({ TokenType::TOKEN_BANG_EQUAL, TokenType::TOKEN_EQUAL_EQUAL }))
     {
-      auto const *op = previous ().value ();
+      auto *op = previous ().value ();
       auto right = comparison ();
 
       if (op->getType () == TokenType::TOKEN_BANG_EQUAL)
         {
           expr = BinaryExpression<TokenType::TOKEN_BANG_EQUAL>{
             std::move (expr),
-            static_cast<BasicToken<TokenType::TOKEN_BANG_EQUAL> const *> (op),
+            static_cast<BasicToken<TokenType::TOKEN_BANG_EQUAL> *> (op),
             std::move (right)
           };
         }
@@ -150,7 +206,7 @@ Parser::equality () -> Expression
         {
           expr = BinaryExpression<TokenType::TOKEN_EQUAL_EQUAL>{
             std::move (expr),
-            static_cast<BasicToken<TokenType::TOKEN_EQUAL_EQUAL> const *> (op),
+            static_cast<BasicToken<TokenType::TOKEN_EQUAL_EQUAL> *> (op),
             std::move (right)
           };
         }
@@ -167,14 +223,14 @@ Parser::comparison () -> Expression
   while (match ({ TokenType::TOKEN_GREATER, TokenType::TOKEN_GREATER_EQUAL,
                   TokenType::TOKEN_LESS, TokenType::TOKEN_LESS_EQUAL }))
     {
-      auto const *op = previous ().value ();
+      auto *op = previous ().value ();
       auto right = term ();
 
       if (op->getType () == TokenType::TOKEN_GREATER)
         {
           expr = BinaryExpression<TokenType::TOKEN_GREATER>{
             std::move (expr),
-            static_cast<BasicToken<TokenType::TOKEN_GREATER> const *> (op),
+            static_cast<BasicToken<TokenType::TOKEN_GREATER> *> (op),
             std::move (right)
           };
         }
@@ -182,8 +238,7 @@ Parser::comparison () -> Expression
         {
           expr = BinaryExpression<TokenType::TOKEN_GREATER_EQUAL>{
             std::move (expr),
-            static_cast<BasicToken<TokenType::TOKEN_GREATER_EQUAL> const *> (
-                op),
+            static_cast<BasicToken<TokenType::TOKEN_GREATER_EQUAL> *> (op),
             std::move (right)
           };
         }
@@ -192,7 +247,7 @@ Parser::comparison () -> Expression
           expr = BinaryExpression<TokenType::TOKEN_LESS>{
             std::move (expr),
 
-            static_cast<BasicToken<TokenType::TOKEN_LESS> const *> (op),
+            static_cast<BasicToken<TokenType::TOKEN_LESS> *> (op),
             std::move (right)
           };
         }
@@ -200,7 +255,7 @@ Parser::comparison () -> Expression
         {
           expr = BinaryExpression<TokenType::TOKEN_LESS_EQUAL>{
             std::move (expr),
-            static_cast<BasicToken<TokenType::TOKEN_LESS_EQUAL> const *> (op),
+            static_cast<BasicToken<TokenType::TOKEN_LESS_EQUAL> *> (op),
             std::move (right)
           };
         }
@@ -216,14 +271,14 @@ Parser::term () -> Expression
 
   while (match ({ TokenType::TOKEN_MINUS, TokenType::TOKEN_PLUS }))
     {
-      auto const *op = previous ().value ();
+      auto *op = previous ().value ();
       auto right = factor ();
 
       if (op->getType () == TokenType::TOKEN_MINUS)
         {
           expr = BinaryExpression<TokenType::TOKEN_MINUS>{
             std::move (expr),
-            static_cast<BasicToken<TokenType::TOKEN_MINUS> const *> (op),
+            static_cast<BasicToken<TokenType::TOKEN_MINUS> *> (op),
             std::move (right)
           };
         }
@@ -231,7 +286,7 @@ Parser::term () -> Expression
         {
           expr = BinaryExpression<TokenType::TOKEN_PLUS>{
             std::move (expr),
-            static_cast<BasicToken<TokenType::TOKEN_PLUS> const *> (op),
+            static_cast<BasicToken<TokenType::TOKEN_PLUS> *> (op),
             std::move (right)
           };
         }
@@ -247,14 +302,14 @@ Parser::factor () -> Expression
 
   while (match ({ TokenType::TOKEN_SLASH, TokenType::TOKEN_STAR }))
     {
-      auto const *op = previous ().value ();
+      auto *op = previous ().value ();
       auto right = unary ();
 
       if (op->getType () == TokenType::TOKEN_SLASH)
         {
           expr = BinaryExpression<TokenType::TOKEN_SLASH>{
             std::move (expr),
-            static_cast<BasicToken<TokenType::TOKEN_SLASH> const *> (op),
+            static_cast<BasicToken<TokenType::TOKEN_SLASH> *> (op),
             std::move (right)
           };
         }
@@ -262,7 +317,7 @@ Parser::factor () -> Expression
         {
           expr = BinaryExpression<TokenType::TOKEN_STAR>{
             std::move (expr),
-            static_cast<BasicToken<TokenType::TOKEN_STAR> const *> (op),
+            static_cast<BasicToken<TokenType::TOKEN_STAR> *> (op),
             std::move (right)
           };
         }
@@ -276,13 +331,13 @@ Parser::unary () -> Expression
 {
   while (match ({ TokenType::TOKEN_BANG, TokenType::TOKEN_MINUS }))
     {
-      auto const *op = previous ().value ();
+      auto *op = previous ().value ();
       auto right = unary ();
 
       if (op->getType () == TokenType::TOKEN_BANG)
         {
           return UnaryExpression<TokenType::TOKEN_BANG>{
-            static_cast<BasicToken<TokenType::TOKEN_BANG> const *> (op),
+            static_cast<BasicToken<TokenType::TOKEN_BANG> *> (op),
             std::move (right)
           };
         }
@@ -290,7 +345,7 @@ Parser::unary () -> Expression
       if (op->getType () == TokenType::TOKEN_MINUS)
         {
           return UnaryExpression<TokenType::TOKEN_MINUS>{
-            static_cast<BasicToken<TokenType::TOKEN_MINUS> const *> (op),
+            static_cast<BasicToken<TokenType::TOKEN_MINUS> *> (op),
             std::move (right)
           };
         }
@@ -319,19 +374,27 @@ Parser::primary () -> Expression
 
   if (match ({ TokenType::TOKEN_NUMBER, TokenType::TOKEN_STRING }))
     {
-      auto const *op = previous ().value ();
+      auto *op = previous ().value ();
       if (op->getType () == TokenType::TOKEN_NUMBER)
         {
           return LiteralNumberExpression{ (
-              static_cast<ValueToken<TokenType::TOKEN_NUMBER> const *> (op)
+              static_cast<ValueToken<TokenType::TOKEN_NUMBER> *> (op)
                   ->getValue ()) };
         }
       if (op->getType () == TokenType::TOKEN_STRING)
         {
           return LiteralStringExpression{ (
-              static_cast<ValueToken<TokenType::TOKEN_STRING> const *> (op)
+              static_cast<ValueToken<TokenType::TOKEN_STRING> *> (op)
                   ->getValue ()) };
         }
+    }
+
+  if (match (TokenType::TOKEN_IDENTIFIER))
+    {
+      return VariableExpression{
+        static_cast<ValueToken<TokenType::TOKEN_IDENTIFIER> *> (
+            previous ().value ())
+      };
     }
 
   if (match (TokenType::TOKEN_LEFT_PAREN))
@@ -401,7 +464,7 @@ Parser::match (std::initializer_list<TokenType> types) -> bool
 }
 
 [[nodiscard]] auto
-Parser::peek () const -> std::optional<Token const *>
+Parser::peek () const -> std::optional<Token *>
 {
   if (m_token_it != m_tokens.end ())
     {
@@ -411,7 +474,7 @@ Parser::peek () const -> std::optional<Token const *>
 }
 
 [[nodiscard]] auto
-Parser::previous () const -> std::optional<Token const *>
+Parser::previous () const -> std::optional<Token *>
 {
   if (m_token_it != m_tokens.begin ())
     {

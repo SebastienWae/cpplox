@@ -8,6 +8,7 @@ set(HEADER_LIST
   "Statement.hpp"
   "Parser.hpp"
   "Interpreter.hpp"
+  "Environment.hpp"
   "utils/Enums.hpp"
   "utils/Box.hpp")
 
@@ -18,7 +19,8 @@ set(SOURCE_LIST
   "Expression.cpp"
   "Statement.cpp"
   "Parser.cpp"
-  "Interpreter.cpp")
+  "Interpreter.cpp"
+  "Environment.cpp")
 
 add_library(${PROJECT_NAME} ${HEADER_LIST} ${SOURCE_LIST})
 

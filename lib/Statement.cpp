@@ -16,3 +16,22 @@ PrintStatement ::getExpression () const -> Expression const &
 {
   return m_expr;
 }
+
+VariableDeclaration::VariableDeclaration (
+    ValueToken<TokenType::TOKEN_IDENTIFIER> const *name,
+    std::optional<Expression> &&initializer)
+    : m_name (name), m_initializer (initializer)
+{
+}
+
+[[nodiscard]] auto
+VariableDeclaration::getName () const -> std::string_view
+{
+  return m_name->getValue ();
+}
+
+[[nodiscard]] auto
+VariableDeclaration::getInitializer () const -> std::optional<Expression>
+{
+  return m_initializer;
+}

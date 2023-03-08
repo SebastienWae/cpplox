@@ -1,4 +1,6 @@
 #include "Expression.hpp"
+#include "Token.hpp"
+#include <string_view>
 
 LiteralNumberExpression::LiteralNumberExpression (double value)
     : m_value (value)
@@ -18,6 +20,25 @@ LiteralStringExpression::LiteralStringExpression (std::string_view value)
 LiteralStringExpression::getValue () const -> std::string_view
 {
   return m_value;
+}
+
+VariableExpression::VariableExpression (
+    ValueToken<TokenType::TOKEN_IDENTIFIER> *identifier)
+    : m_identifier (identifier)
+{
+}
+
+[[nodiscard]] auto
+VariableExpression::getName () const -> std::string_view
+{
+  return m_identifier->getValue ();
+}
+
+[[nodiscard]] auto
+VariableExpression::getIdentifier () const
+    -> ValueToken<TokenType::TOKEN_IDENTIFIER> *
+{
+  return m_identifier;
 }
 
 GroupingExpression::GroupingExpression (Expression &&expr) : m_expr (expr) {}
@@ -52,4 +73,29 @@ TernaryExpression::getTrueExpression () const -> Expression const &
 TernaryExpression::getFalseExpression () const -> Expression const &
 {
   return m_false_expr;
+}
+
+AssignExpression::AssignExpression (
+    ValueToken<TokenType::TOKEN_IDENTIFIER> *identifier, Expression &&value)
+    : m_identifier (identifier), m_value (value)
+{
+}
+
+[[nodiscard]] auto
+AssignExpression::getName () const -> std::string_view
+{
+  return m_identifier->getValue ();
+}
+
+[[nodiscard]] auto
+AssignExpression::getValue () const -> Expression const &
+{
+  return m_value;
+}
+
+[[nodiscard]] auto
+AssignExpression::getIdentifier () const
+    -> ValueToken<TokenType::TOKEN_IDENTIFIER> *
+{
+  return m_identifier;
 }

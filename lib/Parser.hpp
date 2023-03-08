@@ -29,14 +29,17 @@ public:
   auto parse () -> std::optional<std::vector<Statement> >;
 
 private:
+  void declarations (std::vector<Statement> &statements);
+
+  auto variableDeclaration () -> VariableDeclaration;
+
   auto statement () -> Statement;
 
   auto printStatement () -> PrintStatement;
   auto expressionStatement () -> ExpressionStatement;
 
   auto expression () -> Expression;
-  auto comma () -> Expression;
-  auto ternary () -> Expression;
+  auto assign () -> Expression;
   auto equality () -> Expression;
   auto comparison () -> Expression;
   auto term () -> Expression;
@@ -48,8 +51,8 @@ private:
 
   auto match (TokenType type) -> bool;
   inline auto match (std::initializer_list<TokenType> types) -> bool;
-  [[nodiscard]] auto peek () const -> std::optional<Token const *>;
-  [[nodiscard]] auto previous () const -> std::optional<Token const *>;
+  [[nodiscard]] auto peek () const -> std::optional<Token *>;
+  [[nodiscard]] auto previous () const -> std::optional<Token *>;
 
   auto error (std::optional<Token const *> token, std::string const &msg)
       -> ParserException;
