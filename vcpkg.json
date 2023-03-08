@@ -1,9 +1,25 @@
 {
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
   "name": "cpplox",
   "version-string": "0.0.1",
   "dependencies": [
     "fmt",
     "doctest",
     "readline-unix"
-  ]
+  ],
+  "overrides": [
+    {
+      "name": "fmt",
+      "version": "9.1.0"
+    },
+    {
+      "name": "doctest",
+      "version": "2.4.9"
+    },
+    {
+      "name": "readline-unix",
+      "version": "8.2"
+    }
+  ],
+  "builtin-baseline": "93895b28ea7bc8cda10f156c5d336f3fc070f8b1"
 }
