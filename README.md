@@ -54,7 +54,12 @@ DIGIT          → "0" ... "9" ;
 
 #### Syntax
 ```
-program        → statement* EOF ;
+program        → declaration* EOF ;
+
+declaration    → varDecl
+               | statement ;
+
+varDecl        → "var" IDENTIFIER ( "=" assign )? ( "," IDENTIFIER ( "=" assign )? )* ";"
 
 statement      → exprStmt
                | printStmt ;
@@ -63,10 +68,16 @@ exprStmt       → expression ";" ;
 printStmt      → "print" expression ";" ;
 ```
 ```
-expression     → comma ;
-comma          → ternary ("," ternary)* ;
-ternary        → equality
-               | equality "?" ternary ":" ternary ;
+NUMBER         → DIGIT+ ( "." DIGIT+ )? ;
+STRING         → "\"" <any char except "\"">* "\"" ;
+IDENTIFIER     → ALPHA ( ALPHA | DIGIT )* ;
+ALPHA          → "a" ... "z" | "A" ... "Z" | "_" ;
+DIGIT          → "0" ... "9" ;
+
+expression     → assignment ( "," expression )* ;
+assignment     → IDENTIFIER "=" assignment
+               | equality "?" assignment ":" assignment
+               | equality ;
 equality       → comparison ( ( "!=" | "==" ) comparison )* ;
 comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 term           → factor ( ( "-" | "+" ) factor )* ;
@@ -74,7 +85,8 @@ factor         → unary ( ( "/" | "*" ) unary )* ;
 unary          → ( "!" | "-" ) unary
                | primary ;
 primary        → NUMBER | STRING | "true" | "false" | "nil"
-               | "(" expression ")" ;
+               | "(" expression ")"
+               | IDENTIFIER ;
 ```
 
 ### Examples
