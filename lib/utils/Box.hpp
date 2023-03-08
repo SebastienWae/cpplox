@@ -9,11 +9,12 @@ template <typename T> class Box
 
 public:
   Box (T &&obj) : m_impl (std::make_unique<T> (std::move (obj))) {}
-  Box (const T &obj) : m_impl (std::make_unique<T> (obj)) {}
+  Box (T const &obj) : m_impl (std::make_unique<T> (obj)) {}
 
-  Box (const Box &other) : Box (*other.m_impl) {}
+  Box (Box const &other) : Box (*other.m_impl) {}
+
   auto
-  operator= (const Box &other) -> Box &
+  operator= (Box const &other) -> Box &
   {
     if (&other == this)
       {
@@ -35,7 +36,7 @@ public:
     return *m_impl;
   }
   auto
-  operator* () const -> const T &
+  operator* () const -> T const &
   {
     return *m_impl;
   }
@@ -46,7 +47,7 @@ public:
     return m_impl.get ();
   }
   auto
-  operator->() const -> const T *
+  operator->() const -> T const *
   {
     return m_impl.get ();
   }
