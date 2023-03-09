@@ -1,60 +1,59 @@
 #ifndef CPPLOX_PARSER_HPP
 #define CPPLOX_PARSER_HPP
 
-#include "ErrorReporter.hpp"
-#include "Expression.hpp"
-#include "Statement.hpp"
-#include "Token.hpp"
 #include <memory>
 #include <optional>
 #include <stdexcept>
 #include <vector>
 
-class Parser
-{
+#include "ErrorReporter.hpp"
+#include "Expression.hpp"
+#include "Statement.hpp"
+#include "Token.hpp"
+
+class Parser {
   std::vector<std::unique_ptr<Token> > const &m_tokens;
   std::vector<std::unique_ptr<Token> >::const_iterator m_token_it;
   ErrorReporter &m_error_reporter;
 
-public:
-  Parser (std::vector<std::unique_ptr<Token> > const &tokens,
-          ErrorReporter &error_reporter);
+ public:
+  Parser(std::vector<std::unique_ptr<Token> > const &tokens,
+         ErrorReporter &error_reporter);
 
-  class ParserException : public std::runtime_error
-  {
-  public:
-    ParserException (std::string const &what);
+  class ParserException : public std::runtime_error {
+   public:
+    ParserException(std::string const &what);
   };
 
-  auto parse () -> std::optional<std::vector<Statement> >;
+  auto parse() -> std::optional<std::vector<Statement> >;
 
-private:
-  void declarations (std::vector<Statement> &statements);
+ private:
+  void declarations(std::vector<Statement> &statements);
 
-  auto variableDeclaration () -> VariableDeclaration;
+  auto variableDeclaration() -> VariableDeclaration;
 
-  auto statement () -> Statement;
+  auto statement() -> Statement;
 
-  auto printStatement () -> PrintStatement;
-  auto expressionStatement () -> ExpressionStatement;
+  auto printStatement() -> PrintStatement;
+  auto expressionStatement() -> ExpressionStatement;
 
-  auto expression () -> Expression;
-  auto assign () -> Expression;
-  auto equality () -> Expression;
-  auto comparison () -> Expression;
-  auto term () -> Expression;
-  auto factor () -> Expression;
-  auto unary () -> Expression;
-  auto primary () -> Expression;
+  auto expression() -> Expression;
+  auto assign() -> Expression;
+  auto equality() -> Expression;
+  auto comparison() -> Expression;
+  auto term() -> Expression;
+  auto factor() -> Expression;
+  auto unary() -> Expression;
+  auto primary() -> Expression;
 
-  void synchronize ();
+  void synchronize();
 
-  auto match (TokenType type) -> bool;
-  inline auto match (std::initializer_list<TokenType> types) -> bool;
-  [[nodiscard]] auto peek () const -> std::optional<Token *>;
-  [[nodiscard]] auto previous () const -> std::optional<Token *>;
+  auto match(TokenType type) -> bool;
+  inline auto match(std::initializer_list<TokenType> types) -> bool;
+  [[nodiscard]] auto peek() const -> std::optional<Token *>;
+  [[nodiscard]] auto previous() const -> std::optional<Token *>;
 
-  auto error (std::optional<Token const *> token, std::string const &msg)
+  auto error(std::optional<Token const *> token, std::string const &msg)
       -> ParserException;
 };
 

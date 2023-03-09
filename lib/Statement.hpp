@@ -1,10 +1,11 @@
 #ifndef CPPLOX_STATEMENT_HPP
 #define CPPLOX_STATEMENT_HPP
 
-#include "Expression.hpp"
-#include "Token.hpp"
 #include <optional>
 #include <variant>
+
+#include "Expression.hpp"
+#include "Token.hpp"
 
 /*
 program        → declaration* EOF ;
@@ -28,37 +29,34 @@ class VariableDeclaration;
 using Statement = std::variant<Box<ExpressionStatement>, Box<PrintStatement>,
                                Box<VariableDeclaration> >;
 
-class ExpressionStatement
-{
+class ExpressionStatement {
   Expression m_expr;
 
-public:
-  ExpressionStatement (Expression &&expr);
+ public:
+  ExpressionStatement(Expression &&expr);
 
-  [[nodiscard]] auto getExpression () const -> Expression const &;
+  [[nodiscard]] auto getExpression() const -> Expression const &;
 };
 
-class PrintStatement
-{
+class PrintStatement {
   Expression m_expr;
 
-public:
-  PrintStatement (Expression &&expr);
+ public:
+  PrintStatement(Expression &&expr);
 
-  [[nodiscard]] auto getExpression () const -> Expression const &;
+  [[nodiscard]] auto getExpression() const -> Expression const &;
 };
 
-class VariableDeclaration
-{
+class VariableDeclaration {
   ValueToken<TokenType::TOKEN_IDENTIFIER> const *m_name;
   std::optional<Expression> m_initializer;
 
-public:
-  VariableDeclaration (ValueToken<TokenType::TOKEN_IDENTIFIER> const *name,
-                       std::optional<Expression> &&initializer = std::nullopt);
+ public:
+  VariableDeclaration(ValueToken<TokenType::TOKEN_IDENTIFIER> const *name,
+                      std::optional<Expression> &&initializer = std::nullopt);
 
-  [[nodiscard]] auto getName () const -> std::string_view;
-  [[nodiscard]] auto getInitializer () const -> std::optional<Expression>;
+  [[nodiscard]] auto getName() const -> std::string_view;
+  [[nodiscard]] auto getInitializer() const -> std::optional<Expression>;
 };
 
 #endif /* CPPLOX_STATEMENT_HPP */
