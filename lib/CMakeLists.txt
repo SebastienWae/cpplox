@@ -2,6 +2,7 @@ find_package(fmt CONFIG REQUIRED)
 find_package(range-v3 CONFIG REQUIRED)
 
 set(HEADER_LIST
+  "Lox.hpp"
   "ErrorReporter.hpp"
   "Token.hpp"
   "Lexer.hpp"
@@ -14,6 +15,7 @@ set(HEADER_LIST
   "utils/Box.hpp")
 
 set(SOURCE_LIST
+  "Lox.cpp"
   "ErrorReporter.cpp"
   "Token.cpp"
   "Lexer.cpp"

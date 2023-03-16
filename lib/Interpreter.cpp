@@ -1,31 +1,34 @@
 #include "Interpreter.hpp"
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <variant>
 
 #include "Environment.hpp"
+#include "ErrorReporter.hpp"
 #include "Statement.hpp"
 
 Interpreter::Interpreter(std::vector<Statement> const& statements,
+                         Environment& environment,
                          ErrorReporter& error_reporter)
     : m_statements(statements),
-      m_error_reporter(error_reporter),
-      m_environment(std::make_unique<Environment>(error_reporter)) {}
+      m_environment(environment),
+      m_error_reporter(error_reporter) {}
 
-Interpreter::~Interpreter() = default;
-
-void Interpreter::interpret() {
+auto Interpreter::interpret() -> std::optional<std::string const> {
   try {
     for (auto statement : m_statements) {
       StatementVisitor v{*this};
       std::visit(v, statement);
+      // TODO: return string
     }
   } catch (Interpreter::InterpreterException& e) {
   } catch (Environment::EnvironmentException& e) {
   } catch (...) {
-    m_error_reporter.setError("Interpreter", "Unexpected error");
+    m_error_reporter.setError(ErrorType::RUNTIME_ERROR, "Unexpected error");
   }
+  return std::nullopt;
 }
 
 auto Interpreter::error(std::optional<Token const*> token,
@@ -37,7 +40,7 @@ auto Interpreter::error(std::optional<Token const*> token,
     auto const* token_value = token.value();
     str = fmt::format("Line: {}\n{}", token_value->getLine(), msg);
   }
-  m_error_reporter.setError("Interpreter", str);
+  m_error_reporter.setError(ErrorType::RUNTIME_ERROR, str);
   return {str};
 }
 
@@ -79,7 +82,7 @@ auto Interpreter::StatementVisitor::operator()(
     ExpressionVisitor expression_visitor{m_interpreter};
     value = std::visit(expression_visitor, initializer.value());
   }
-  m_interpreter.m_environment->define(s->getName(), value);
+  m_interpreter.m_environment.define(s->getName(), value);
 }
 
 Interpreter::ExpressionVisitor::ExpressionVisitor(Interpreter& interpreter)
@@ -110,7 +113,7 @@ auto Interpreter::ExpressionVisitor::operator()(
 }
 auto Interpreter::ExpressionVisitor::operator()(
     Box<VariableExpression> const& e) -> ExpressionValue {
-  auto value = m_interpreter.m_environment->get(e);
+  auto value = m_interpreter.m_environment.get(e);
 
   if (value.has_value()) {
     return value.value();
@@ -135,7 +138,7 @@ auto Interpreter::ExpressionVisitor::operator()(Box<TernaryExpression> const& e)
 auto Interpreter::ExpressionVisitor::operator()(Box<AssignExpression> const& e)
     -> ExpressionValue {
   auto value = std::visit(*this, e->getValue());
-  m_interpreter.m_environment->assign(e, value);
+  m_interpreter.m_environment.assign(e, value);
   return value;
 }
 auto Interpreter::ExpressionVisitor::operator()(

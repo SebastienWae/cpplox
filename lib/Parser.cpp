@@ -8,6 +8,7 @@
 #include <variant>
 #include <vector>
 
+#include "ErrorReporter.hpp"
 #include "Expression.hpp"
 #include "Statement.hpp"
 #include "Token.hpp"
@@ -31,7 +32,7 @@ auto Parser::parse() -> std::optional<std::vector<Statement> > {
   } catch (Parser::ParserException &e) {
     return std::nullopt;
   } catch (...) {
-    m_error_reporter.setError("Parser", "Unexpected error");
+    m_error_reporter.setError(ErrorType::PARSER_ERROR, "Unexpected error");
     return std::nullopt;
   }
 }
@@ -369,7 +370,7 @@ auto Parser::error(std::optional<Token const *> token, std::string const &msg)
     auto const *token_value = token.value();
     str = fmt::format("Line: {}\n{}", token_value->getLine(), msg);
   }
-  m_error_reporter.setError("Parser", str);
+  m_error_reporter.setError(ErrorType::PARSER_ERROR, str);
   return {str};
 }
 

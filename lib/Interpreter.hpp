@@ -2,6 +2,7 @@
 #define CPPLOX_INTERPRETER_HPP
 
 #include <cstddef>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -132,25 +133,19 @@ class Interpreter {
   };
 
   std::vector<Statement> const &m_statements;
-  std::unique_ptr<Environment> m_environment;
-
+  Environment &m_environment;
   ErrorReporter &m_error_reporter;
 
  public:
   Interpreter(std::vector<Statement> const &statements,
-              ErrorReporter &error_reporter);
-  Interpreter(const Interpreter &) = delete;
-  Interpreter(Interpreter &&) = delete;
-  auto operator=(const Interpreter &) -> Interpreter & = delete;
-  auto operator=(Interpreter &&) -> Interpreter & = delete;
-  ~Interpreter();
+              Environment &environment, ErrorReporter &error_reporter);
 
   class InterpreterException : public std::runtime_error {
    public:
     InterpreterException(std::string const &what);
   };
 
-  void interpret();
+  auto interpret() -> std::optional<std::string const>;
 
  private:
   static auto isTruthy(ExpressionValue const &value) -> bool;

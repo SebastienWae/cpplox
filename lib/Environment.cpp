@@ -5,6 +5,7 @@
 #include <optional>
 #include <stdexcept>
 
+#include "ErrorReporter.hpp"
 #include "Expression.hpp"
 
 Environment::Environment(ErrorReporter &error_reporter)
@@ -50,6 +51,6 @@ auto Environment::error(std::optional<Token const *> token,
     str = fmt::format("Line: {}\n{}", token_value->getLine(), msg);
   }
 
-  m_error_reporter.setError("Environment", str);
+  m_error_reporter.setError(ErrorType::RUNTIME_ERROR, str);
   return {str};
 }

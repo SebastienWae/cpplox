@@ -10,6 +10,7 @@
 #include <string_view>
 #include <type_traits>
 
+#include "ErrorReporter.hpp"
 #include "Token.hpp"
 
 Lexer::Lexer(std::string_view source, ErrorReporter &error_reporter)
@@ -22,14 +23,14 @@ Lexer::Lexer(std::string_view source, ErrorReporter &error_reporter)
 auto Lexer::scanTokens() -> std::optional<
     std::reference_wrapper<std::vector<std::unique_ptr<Token> > > > {
   try {
-    while (!isAtEnd() && !m_error_reporter.hasError()) {
+    while (!isAtEnd() && !m_error_reporter.hasErrors()) {
       scanToken();
       m_pos_start = m_pos_current;
       m_line_start = m_line_current;
     }
     return m_tokens;
   } catch (std::exception &e) {
-    m_error_reporter.setError("Lexer", "Unexpected error");
+    m_error_reporter.setError(ErrorType::LEXER_ERROR, "Unexpected error");
     return std::nullopt;
   }
 }
@@ -226,7 +227,7 @@ void Lexer::identifier() {
 }
 
 void Lexer::error(std::string const &error_msg) {
-  m_error_reporter.setError(
-      "Lexer", fmt::format("{} at postion {}, line {}", error_msg, m_pos_start,
-                           m_line_start));
+  m_error_reporter.setError(ErrorType::LEXER_ERROR,
+                            fmt::format("{} at postion {}, line {}", error_msg,
+                                        m_pos_start, m_line_start));
 }

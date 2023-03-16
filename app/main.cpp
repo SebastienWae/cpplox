@@ -4,41 +4,13 @@
 #include <unistd.h>
 
 #include <iostream>
-#include <memory>
 #include <span>
-#include <stdexcept>
-#include <string>
-#include <string_view>
-#include <variant>
 
 #include "../include/config.hpp"
-#include "../lib/ErrorReporter.hpp"
-#include "../lib/Expression.hpp"
-#include "../lib/Interpreter.hpp"
-#include "../lib/Lexer.hpp"
-#include "../lib/Parser.hpp"
-#include "../lib/Token.hpp"
+#include "../lib/Lox.hpp"
 #include "ReadLine.hpp"
 
-void run(std::string_view source, ErrorReporter &error_reporter) {
-  Lexer lexer{source, error_reporter};
-  auto tokens = lexer.scanTokens();
-
-  if (!error_reporter.hasError() && tokens.has_value()) {
-    Parser parser{tokens.value(), error_reporter};
-    auto statements = parser.parse();
-
-    if (!error_reporter.hasError() && statements.has_value()) {
-      Interpreter interpreter{statements.value(), error_reporter};
-      interpreter.interpret();
-    }
-  }
-}
-
 auto runFile(std::string_view path) -> int {
-  std::shared_ptr<std::ostream> stream_ptr(&std::cerr, [](std::ostream *) {});
-  ErrorReporter error_reporter(stream_ptr);
-
   auto fd = open(path.data(), O_RDONLY);
   if (fd == -1) {
     std::cerr << "Failed to open file " << path << '\n';
@@ -55,26 +27,31 @@ auto runFile(std::string_view path) -> int {
 
   std::string_view source(reinterpret_cast<const char *>(map), file_size);
 
-  run(source, error_reporter);
+  Lox lox;
+  auto result = lox.run(source);
 
   munmap(map, file_size);
   close(fd);
 
-  if (error_reporter.hasError()) {
-    error_reporter.logErrors();
+  if (lox.hasErrors()) {
+    for (auto const &error : lox.getErrors()) {
+      std::cerr << error << std::endl;
+    }
     return EX_SOFTWARE;
+  }
+
+  if (result.has_value()) {
+    std::cout << result.value() << std::endl;
   }
 
   return 0;
 }
 
 auto runRepl() -> int {
-  std::shared_ptr<std::ostream> stream_ptr(&std::cerr, [](std::ostream *) {});
-  ErrorReporter error_reporter(stream_ptr);
-
   std::cout << "cpplox: Lox interpreter - v" << PROJECT_VER << std::endl;
   std::cout << "To exit, press Ctrl+d or type \"exit\"" << std::endl;
 
+  Lox lox;
   ReadLine readline{">> "};
   while (true) {
     auto line = readline.getLine();
@@ -92,11 +69,14 @@ auto runRepl() -> int {
       return 0;
     }
 
-    run(line.value(), error_reporter);
+    auto result = lox.run(line.value());
 
-    if (error_reporter.hasError()) {
-      error_reporter.logErrors();
-      error_reporter.clearErrors();
+    if (lox.hasErrors()) {
+      for (auto const &error : lox.getErrors()) {
+        std::cerr << error << std::endl;
+      }
+    } else if (result.has_value()) {
+      std::cout << result.value() << std::endl;
     }
   }
 }
