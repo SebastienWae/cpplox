@@ -1,4 +1,5 @@
 find_package(fmt CONFIG REQUIRED)
+find_package(range-v3 CONFIG REQUIRED)
 
 set(HEADER_LIST
   "ErrorReporter.hpp"
@@ -26,7 +27,10 @@ add_library(${PROJECT_NAME} ${HEADER_LIST} ${SOURCE_LIST})
 
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
-  fmt::fmt)
+  fmt::fmt
+  range-v3::meta
+  range-v3::concepts
+  range-v3::range-v3)
 
 set_target_properties(${PROJECT_NAME}
   PROPERTIES

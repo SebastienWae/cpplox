@@ -4,6 +4,7 @@
   "version-string": "0.0.1",
   "dependencies": [
     "fmt",
+    "range-v3",
     "doctest",
     "readline-unix"
   ],
@@ -11,6 +12,10 @@
     {
       "name": "fmt",
       "version": "9.1.0"
+    },
+    {
+      "name": "range-v3",
+      "version": "0.12.0"
     },
     {
       "name": "doctest",
