@@ -10,10 +10,14 @@
 
 class Lox {
   ErrorReporter m_error_reporter;
-  Environment m_environment{m_error_reporter};
+  Environment m_environment;
 
  public:
-  auto run(std::string_view source) -> std::optional<std::string const>;
+  Lox();
+  Lox(ErrorReporter::Formater error_formater);
+
+  auto run(std::string_view source)
+      -> std::optional<std::vector<std::string> const>;
 
   [[nodiscard]] auto getErrors() const -> std::vector<std::string>;
   [[nodiscard]] auto hasErrors() const -> bool;

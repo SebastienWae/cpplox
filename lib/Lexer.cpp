@@ -11,13 +11,24 @@
 #include <type_traits>
 
 #include "ErrorReporter.hpp"
+#include "SourcePosition.hpp"
 #include "Token.hpp"
 
 Lexer::Lexer(std::string_view source, ErrorReporter &error_reporter)
     : m_source(source), m_error_reporter(error_reporter) {}
 
 [[nodiscard]] auto Lexer::isAtEnd() const -> bool {
-  return m_pos_current >= m_source.size();
+  return m_cur_cursor >= m_source.size();
+}
+
+void Lexer::nextLine() {
+  ++m_current_line;
+  m_current_line_position = 0;
+}
+
+void Lexer::moveCursor(std::uint32_t i) {
+  m_cur_cursor += i;
+  m_current_line_position += i;
 }
 
 auto Lexer::scanTokens() -> std::optional<
@@ -25,12 +36,14 @@ auto Lexer::scanTokens() -> std::optional<
   try {
     while (!isAtEnd() && !m_error_reporter.hasErrors()) {
       scanToken();
-      m_pos_start = m_pos_current;
-      m_line_start = m_line_current;
+      m_prev_cursor = m_cur_cursor;
+
+      m_start_line = m_current_line;
+      m_start_line_position = m_current_line_position;
     }
     return m_tokens;
   } catch (std::exception &e) {
-    m_error_reporter.setError(ErrorType::LEXER_ERROR, "Unexpected error");
+    m_error_reporter.setError("Unexpected error while lexing");
     return std::nullopt;
   }
 }
@@ -88,17 +101,18 @@ void Lexer::scanToken()  // NOLINT(readability-function-cognitive-complexity)
   } else if (match('/')) {
     if (match('*')) {
       while (!isAtEnd() && (peek() != '*' || peekNext() != '/')) {
-        if (peek() == '\n') {
-          ++m_line_current;
+        if (match('\n')) {
+          nextLine();
+        } else {
+          moveCursor(1);
         }
-        ++m_pos_current;
       }
       if (!isAtEnd()) {
-        m_pos_current += 2;
+        moveCursor(2);
       }
     } else if (match('/')) {
       while (!isAtEnd() && peek() != '\n') {
-        ++m_pos_current;
+        moveCursor(1);
       }
     } else {
       addToken<TokenType::TOKEN_SLASH>();
@@ -110,9 +124,9 @@ void Lexer::scanToken()  // NOLINT(readability-function-cognitive-complexity)
   } else if (peek() == '_' || std::isalpha(peek()) != 0) {
     identifier();
   } else if (match('\n')) {
-    ++m_line_current;
+    nextLine();
   } else if (std::isspace(peek()) != 0) {
-    ++m_pos_current;
+    moveCursor(1);
   } else {
     error("Unexpected character");
   }
@@ -120,7 +134,7 @@ void Lexer::scanToken()  // NOLINT(readability-function-cognitive-complexity)
 
 [[nodiscard]] auto Lexer::match(char c) -> bool {
   if (peek() == c) {
-    ++m_pos_current;
+    moveCursor(1);
     return true;
   }
   return false;
@@ -130,48 +144,49 @@ void Lexer::scanToken()  // NOLINT(readability-function-cognitive-complexity)
   if (isAtEnd()) {
     return '\0';
   }
-  return m_source.at(m_pos_current);
+  return m_source.at(m_cur_cursor);
 }
 
 [[nodiscard]] auto Lexer::peekNext() const -> char {
-  if (m_pos_current + 1 >= m_source.size()) {
+  if (m_cur_cursor + 1 >= m_source.size()) {
     return '\0';
   }
-  return m_source.at(m_pos_current + 1);
+  return m_source.at(m_cur_cursor + 1);
 }
 
 void Lexer::string() {
   while (!isAtEnd()) {
     if (match('"')) {
       auto string =
-          m_source.substr(m_pos_start + 1, m_pos_current - m_pos_start - 2);
+          m_source.substr(m_prev_cursor + 1, m_cur_cursor - m_prev_cursor - 2);
       addToken<TokenType::TOKEN_STRING>(string);
       return;
     }
 
-    if (peek() == '\n') {
-      ++m_line_current;
+    if (match('\n')) {
+      nextLine();
+    } else {
+      moveCursor(1);
     }
-    ++m_pos_current;
   }
 
   error("Unterminated string");
 }
 
 void Lexer::number() {
-  while (!isAtEnd() && std::isdigit(m_source.at(m_pos_current)) != 0) {
-    ++m_pos_current;
+  while (!isAtEnd() && std::isdigit(m_source.at(m_cur_cursor)) != 0) {
+    moveCursor(1);
   }
 
   if ((std::isdigit(peekNext()) != 0) && match('.')) {
-    while (!isAtEnd() && std::isdigit(m_source.at(m_pos_current)) != 0) {
-      ++m_pos_current;
+    while (!isAtEnd() && std::isdigit(m_source.at(m_cur_cursor)) != 0) {
+      moveCursor(1);
     }
   }
 
   double value = 0;
-  const auto res = std::from_chars(m_source.data() + m_pos_start,
-                                   m_source.data() + m_pos_current, value);
+  const auto res = std::from_chars(m_source.data() + m_prev_cursor,
+                                   m_source.data() + m_cur_cursor, value);
   if (res.ec == std::errc()) {
     addToken<TokenType::TOKEN_NUMBER>(value);
   } else if (res.ec == std::errc::invalid_argument) {
@@ -184,10 +199,10 @@ void Lexer::number() {
 void Lexer::identifier() {
   for (auto next = peek(); std::isalnum(next) != 0 || next == '_';
        next = peek()) {
-    ++m_pos_current;
+    moveCursor(1);
   }
 
-  auto lexeme = m_source.substr(m_pos_start, m_pos_current - m_pos_start);
+  auto lexeme = m_source.substr(m_prev_cursor, m_cur_cursor - m_prev_cursor);
 
   if (lexeme == "and") {
     addToken<TokenType::TOKEN_AND>();
@@ -227,7 +242,8 @@ void Lexer::identifier() {
 }
 
 void Lexer::error(std::string const &error_msg) {
-  m_error_reporter.setError(ErrorType::LEXER_ERROR,
-                            fmt::format("{} at postion {}, line {}", error_msg,
-                                        m_pos_start, m_line_start));
+  m_error_reporter.setError(
+      error_msg,
+      SourcePosition(m_start_line, m_current_line, m_start_line_position,
+                     m_current_line_position));
 }

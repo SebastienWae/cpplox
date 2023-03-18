@@ -1,13 +1,25 @@
 #include "Lox.hpp"
 
+#include <range/v3/view/join.hpp>
+#include <utility>
+
 #include "Expression.hpp"
 #include "Interpreter.hpp"
 #include "Lexer.hpp"
 #include "Parser.hpp"
 #include "Token.hpp"
 
-auto Lox::run(std::string_view source) -> std::optional<std::string const> {
+Lox::Lox() : m_environment(m_error_reporter) {}
+
+Lox::Lox(ErrorReporter::Formater error_formater)
+    : m_error_reporter(std::move(error_formater)),
+      m_environment(m_error_reporter) {}
+
+auto Lox::run(std::string_view source)
+    -> std::optional<std::vector<std::string> const> {
   m_error_reporter.clearErrors();
+
+  m_error_reporter.setSource(source);
 
   Lexer lexer{source, m_error_reporter};
   auto tokens = lexer.scanTokens();

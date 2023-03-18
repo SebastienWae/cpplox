@@ -1,21 +1,60 @@
 #ifndef CPPLOX_ERRORREPORTER_HPP
 #define CPPLOX_ERRORREPORTER_HPP
 
-#include <memory>
+#include <functional>
+#include <optional>
 #include <string>
+#include <string_view>
+#include <utility>
 #include <vector>
 
-class ErrorReporter {
-  std::vector<std::pair<std::string, std::string>> m_errors;
-  std::shared_ptr<std::ostream> m_stream_ptr;
+#include "SourcePosition.hpp"
+
+class Error {
+  std::string const m_msg;
+  std::optional<SourcePosition> m_position;
 
  public:
-  ErrorReporter(std::shared_ptr<std::ostream> stream_ptr);
+  Error(std::string msg, std::optional<SourcePosition> position);
 
-  [[nodiscard]] auto hasError() const -> bool;
-  void logErrors() const;
-  void setError(std::string const& from, std::string const& msg);
+  [[nodiscard]] inline auto getMessage() const -> std::string const& {
+    return m_msg;
+  }
+  [[nodiscard]] inline auto getPositon() const
+      -> std::optional<SourcePosition> {
+    return m_position;
+  }
+  [[nodiscard]] inline auto hasPosition() const {
+    return m_position.has_value();
+  }
+};
+
+class ErrorReporter {
+ public:
+  using Formater = std::function<std::string(Error, std::string_view)>;
+
+ private:
+  std::vector<Error> m_errors;
+  std::string_view m_source;
+  Formater m_formater;
+
+ public:
+  ErrorReporter(Formater formater = defaultFormater);
+
+  void setSource(std::string_view source);
+
+  [[nodiscard]] auto hasErrors() const -> bool;
+  [[nodiscard]] auto getErrors() const -> std::vector<std::string>;
+
+  void setError(std::string const& msg,
+                std::optional<SourcePosition> position = std::nullopt);
+
   void clearErrors();
+
+ private:
+  [[nodiscard]] static auto defaultFormater(Error const& error,
+                                            std::string_view source)
+      -> std::string;
 };
 
 #endif /* CPPLOX_ERRORREPORTER_HPP */

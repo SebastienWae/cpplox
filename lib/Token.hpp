@@ -2,6 +2,7 @@
 #define CPPLOX_TOKEN_HPP
 
 #include <fmt/core.h>
+#include <fmt/format.h>
 
 #include <memory>
 #include <optional>
@@ -9,6 +10,7 @@
 #include <string_view>
 #include <variant>
 
+#include "SourcePosition.hpp"
 #include "utils/Enums.hpp"
 
 enum class TokenType {
@@ -61,12 +63,10 @@ enum class TokenType {
 };
 
 class Token {
-  std::uint32_t const m_offset;
-  std::uint32_t const m_length;
-  std::uint32_t const m_line;
+  SourcePosition m_position;
 
  protected:
-  Token(std::uint32_t offset, std::uint32_t length, std::uint32_t line);
+  Token(SourcePosition position) : m_position(position) {}
 
  public:
   virtual ~Token() = default;
@@ -75,13 +75,9 @@ class Token {
   auto operator=(const Token&) -> Token& = delete;
   auto operator=(Token&&) -> Token& = delete;
 
-  [[nodiscard]] inline auto getOffset() const -> std::uint32_t {
-    return m_offset;
+  [[nodiscard]] auto getPosition() const -> SourcePosition const& {
+    return m_position;
   }
-  [[nodiscard]] inline auto getLength() const -> std::uint32_t {
-    return m_length;
-  }
-  [[nodiscard]] inline auto getLine() const -> std::uint32_t { return m_line; }
 
   [[nodiscard]] virtual auto getType() const -> TokenType = 0;
   [[nodiscard]] virtual auto toString() const -> std::string = 0;
@@ -97,15 +93,12 @@ template <TokenType type>
   requires(!is_value_token<type>())
 class BasicToken : public Token {
  public:
-  BasicToken(std::uint32_t offset, std::uint32_t length, std::uint32_t line)
-      : Token(offset, length, line) {}
+  BasicToken(SourcePosition position) : Token(position) {}
 
   [[nodiscard]] auto getType() const -> TokenType override { return type; }
 
   [[nodiscard]] inline auto toString() const -> std::string override {
-    return fmt::format("[{}]\n - offset: {}\n - length: {}\n - line: {}",
-                       Enums::enum_to_string(type), getOffset(), getLength(),
-                       getLine());
+    return fmt::format("[{}]", Enums::enum_to_string(type));
   }
 };
 
@@ -117,19 +110,16 @@ class ValueToken<TokenType::TOKEN_NUMBER> : public Token {
   double const m_value;
 
  public:
-  ValueToken(double value, std::uint32_t offset, std::uint32_t length,
-             std::uint32_t line)
-      : Token(offset, length, line), m_value(value) {}
+  ValueToken(double value, SourcePosition position)
+      : Token(position), m_value(value) {}
 
   [[nodiscard]] auto getType() const -> TokenType override {
     return TokenType::TOKEN_NUMBER;
   }
 
   [[nodiscard]] inline auto toString() const -> std::string override {
-    return fmt::format(
-        "[{}]\n - value: {}\n - offset: {}\n - length: {}\n - line: {}",
-        Enums::enum_to_string(TokenType::TOKEN_NUMBER), m_value, getOffset(),
-        getLength(), getLine());
+    return fmt::format("[{}] - {}",
+                       Enums::enum_to_string(TokenType::TOKEN_NUMBER), m_value);
   }
 
   [[nodiscard]] inline auto getValue() const -> double { return m_value; }
@@ -142,17 +132,13 @@ class ValueToken<type> : public Token {
   std::string_view const m_value;
 
  public:
-  ValueToken(std::string_view value, std::uint32_t offset, std::uint32_t length,
-             std::uint32_t line)
-      : Token(offset, length, line), m_value(value) {}
+  ValueToken(std::string_view value, SourcePosition position)
+      : Token(position), m_value(value) {}
 
   [[nodiscard]] auto getType() const -> TokenType override { return type; }
 
   [[nodiscard]] inline auto toString() const -> std::string override {
-    return fmt::format(
-        "[{}]\n - value: {}\n - offset: {}\n - length: {}\n - line: {}",
-        Enums::enum_to_string(type), m_value, getOffset(), getLength(),
-        getLine());
+    return fmt::format("[{}] - {}", Enums::enum_to_string(type), m_value);
   }
 
   [[nodiscard]] inline auto getValue() const -> std::string_view {

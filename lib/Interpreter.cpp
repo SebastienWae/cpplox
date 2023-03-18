@@ -16,32 +16,29 @@ Interpreter::Interpreter(std::vector<Statement> const& statements,
       m_environment(environment),
       m_error_reporter(error_reporter) {}
 
-auto Interpreter::interpret() -> std::optional<std::string const> {
+auto Interpreter::interpret() -> std::optional<std::vector<std::string> const> {
   try {
+    StatementVisitor v{*this};
     for (auto statement : m_statements) {
-      StatementVisitor v{*this};
       std::visit(v, statement);
-      // TODO: return string
     }
+    return v.getValues();
   } catch (Interpreter::InterpreterException& e) {
   } catch (Environment::EnvironmentException& e) {
   } catch (...) {
-    m_error_reporter.setError(ErrorType::RUNTIME_ERROR, "Unexpected error");
+    m_error_reporter.setError("Unexpected error while interpreting");
   }
   return std::nullopt;
 }
 
 auto Interpreter::error(std::optional<Token const*> token,
                         std::string const& msg) -> InterpreterException {
-  std::string str;
-  if (!token.has_value()) {
-    str = fmt::format("{} at end", msg);
+  if (token.has_value()) {
+    m_error_reporter.setError(msg, token.value()->getPosition());
   } else {
-    auto const* token_value = token.value();
-    str = fmt::format("Line: {}\n{}", token_value->getLine(), msg);
+    m_error_reporter.setError(msg);
   }
-  m_error_reporter.setError(ErrorType::RUNTIME_ERROR, str);
-  return {str};
+  return {msg};
 }
 
 Interpreter::InterpreterException::InterpreterException(std::string const& what)
@@ -61,12 +58,17 @@ auto Interpreter::isEqual(ExpressionValue const& left_value,
 Interpreter::StatementVisitor::StatementVisitor(Interpreter& interpreter)
     : m_interpreter(interpreter) {}
 
+[[nodiscard]] auto Interpreter::StatementVisitor::getValues() const
+    -> std::vector<std::string> const& {
+  return m_values;
+}
+
 auto Interpreter::StatementVisitor::operator()(Box<PrintStatement> const& s)
     -> void {
   ExpressionVisitor expression_visitor{m_interpreter};
   ExpressionValue value = std::visit(expression_visitor, s->getExpression());
   StringifyVisitor stringify_visitor;
-  std::cout << std::visit(stringify_visitor, value) << std::endl;
+  m_values.emplace_back(std::visit(stringify_visitor, value));
 }
 auto Interpreter::StatementVisitor::operator()(
     Box<ExpressionStatement> const& s) -> void {

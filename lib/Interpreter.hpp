@@ -25,8 +25,11 @@ class Interpreter {
     auto operator()(Box<ExpressionStatement> const &s) -> void;
     auto operator()(Box<VariableDeclaration> const &s) -> void;
 
+    [[nodiscard]] auto getValues() const -> std::vector<std::string> const &;
+
    private:
     Interpreter &m_interpreter;
+    std::vector<std::string> m_values;
   };
 
   struct ExpressionVisitor {
@@ -36,47 +39,45 @@ class Interpreter {
     auto operator()([[maybe_unused]] Box<LiteralStringExpression> const &e)
         -> ExpressionValue;
     auto operator()(
-        [[maybe_unused]] Box<LiteralExpression<TokenType::TOKEN_TRUE> > const
+        [[maybe_unused]] Box<LiteralExpression<TokenType::TOKEN_TRUE>> const &e)
+        -> ExpressionValue;
+    auto operator()(
+        [[maybe_unused]] Box<LiteralExpression<TokenType::TOKEN_FALSE>> const
             &e) -> ExpressionValue;
     auto operator()(
-        [[maybe_unused]] Box<LiteralExpression<TokenType::TOKEN_FALSE> > const
-            &e) -> ExpressionValue;
-    auto operator()(
-        [[maybe_unused]] Box<LiteralExpression<TokenType::TOKEN_NIL> > const &e)
+        [[maybe_unused]] Box<LiteralExpression<TokenType::TOKEN_NIL>> const &e)
         -> ExpressionValue;
     auto operator()(Box<VariableExpression> const &e) -> ExpressionValue;
     auto operator()(Box<GroupingExpression> const &e) -> ExpressionValue;
     auto operator()(Box<TernaryExpression> const &e) -> ExpressionValue;
     auto operator()(Box<AssignExpression> const &e) -> ExpressionValue;
-    auto operator()(Box<UnaryExpression<TokenType::TOKEN_MINUS> > const &e)
+    auto operator()(Box<UnaryExpression<TokenType::TOKEN_MINUS>> const &e)
         -> ExpressionValue;
-    auto operator()(Box<UnaryExpression<TokenType::TOKEN_BANG> > const &e)
-        -> ExpressionValue;
-    auto operator()(
-        Box<BinaryExpression<TokenType::TOKEN_EQUAL_EQUAL> > const &e)
+    auto operator()(Box<UnaryExpression<TokenType::TOKEN_BANG>> const &e)
         -> ExpressionValue;
     auto operator()(
-        Box<BinaryExpression<TokenType::TOKEN_BANG_EQUAL> > const &e)
+        Box<BinaryExpression<TokenType::TOKEN_EQUAL_EQUAL>> const &e)
         -> ExpressionValue;
-    auto operator()(Box<BinaryExpression<TokenType::TOKEN_LESS> > const &e)
+    auto operator()(Box<BinaryExpression<TokenType::TOKEN_BANG_EQUAL>> const &e)
+        -> ExpressionValue;
+    auto operator()(Box<BinaryExpression<TokenType::TOKEN_LESS>> const &e)
+        -> ExpressionValue;
+    auto operator()(Box<BinaryExpression<TokenType::TOKEN_LESS_EQUAL>> const &e)
+        -> ExpressionValue;
+    auto operator()(Box<BinaryExpression<TokenType::TOKEN_GREATER>> const &e)
         -> ExpressionValue;
     auto operator()(
-        Box<BinaryExpression<TokenType::TOKEN_LESS_EQUAL> > const &e)
+        Box<BinaryExpression<TokenType::TOKEN_GREATER_EQUAL>> const &e)
         -> ExpressionValue;
-    auto operator()(Box<BinaryExpression<TokenType::TOKEN_GREATER> > const &e)
+    auto operator()(Box<BinaryExpression<TokenType::TOKEN_PLUS>> const &e)
         -> ExpressionValue;
-    auto operator()(
-        Box<BinaryExpression<TokenType::TOKEN_GREATER_EQUAL> > const &e)
+    auto operator()(Box<BinaryExpression<TokenType::TOKEN_MINUS>> const &e)
         -> ExpressionValue;
-    auto operator()(Box<BinaryExpression<TokenType::TOKEN_PLUS> > const &e)
+    auto operator()(Box<BinaryExpression<TokenType::TOKEN_STAR>> const &e)
         -> ExpressionValue;
-    auto operator()(Box<BinaryExpression<TokenType::TOKEN_MINUS> > const &e)
+    auto operator()(Box<BinaryExpression<TokenType::TOKEN_SLASH>> const &e)
         -> ExpressionValue;
-    auto operator()(Box<BinaryExpression<TokenType::TOKEN_STAR> > const &e)
-        -> ExpressionValue;
-    auto operator()(Box<BinaryExpression<TokenType::TOKEN_SLASH> > const &e)
-        -> ExpressionValue;
-    auto operator()(Box<BinaryExpression<TokenType::TOKEN_COMMA> > const &e)
+    auto operator()(Box<BinaryExpression<TokenType::TOKEN_COMMA>> const &e)
         -> ExpressionValue;
 
    private:
@@ -145,7 +146,7 @@ class Interpreter {
     InterpreterException(std::string const &what);
   };
 
-  auto interpret() -> std::optional<std::string const>;
+  auto interpret() -> std::optional<std::vector<std::string> const>;
 
  private:
   static auto isTruthy(ExpressionValue const &value) -> bool;

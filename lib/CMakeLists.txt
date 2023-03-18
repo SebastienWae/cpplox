@@ -4,6 +4,7 @@ find_package(range-v3 CONFIG REQUIRED)
 set(HEADER_LIST
   "Lox.hpp"
   "ErrorReporter.hpp"
+  "SourcePosition.hpp"
   "Token.hpp"
   "Lexer.hpp"
   "Expression.hpp"
@@ -17,7 +18,7 @@ set(HEADER_LIST
 set(SOURCE_LIST
   "Lox.cpp"
   "ErrorReporter.cpp"
-  "Token.cpp"
+  "SourcePosition.cpp"
   "Lexer.cpp"
   "Expression.cpp"
   "Statement.cpp"

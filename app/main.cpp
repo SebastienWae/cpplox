@@ -3,6 +3,7 @@
 #include <sysexits.h>
 #include <unistd.h>
 
+#include <cstdint>
 #include <iostream>
 #include <span>
 
@@ -29,22 +30,23 @@ auto runFile(std::string_view path) -> int {
 
   Lox lox;
   auto result = lox.run(source);
-
-  munmap(map, file_size);
-  close(fd);
+  std::uint16_t exit_code = 0;
 
   if (lox.hasErrors()) {
     for (auto const &error : lox.getErrors()) {
       std::cerr << error << std::endl;
     }
-    return EX_SOFTWARE;
+    exit_code = EX_SOFTWARE;
+  } else if (result.has_value()) {
+    for (auto const &v : result.value()) {
+      std::cout << v << std::endl;
+    }
   }
 
-  if (result.has_value()) {
-    std::cout << result.value() << std::endl;
-  }
+  munmap(map, file_size);
+  close(fd);
 
-  return 0;
+  return exit_code;
 }
 
 auto runRepl() -> int {
@@ -76,7 +78,9 @@ auto runRepl() -> int {
         std::cerr << error << std::endl;
       }
     } else if (result.has_value()) {
-      std::cout << result.value() << std::endl;
+      for (auto const &v : result.value()) {
+        std::cout << v << std::endl;
+      }
     }
   }
 }

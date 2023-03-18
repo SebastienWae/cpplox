@@ -32,7 +32,7 @@ auto Parser::parse() -> std::optional<std::vector<Statement> > {
   } catch (Parser::ParserException &e) {
     return std::nullopt;
   } catch (...) {
-    m_error_reporter.setError(ErrorType::PARSER_ERROR, "Unexpected error");
+    m_error_reporter.setError("Unexpected error while parsing");
     return std::nullopt;
   }
 }
@@ -69,7 +69,7 @@ auto Parser::variableDeclaration() -> VariableDeclaration {
     return {id};
   }
 
-  throw error(peek(), "';' expected after value");
+  throw error(previous(), "';' expected after value");
 }
 
 auto Parser::statement() -> Statement {
@@ -84,7 +84,7 @@ auto Parser::printStatement() -> PrintStatement {
   auto value = expression();
 
   if (!match(TokenType::TOKEN_SEMICOLON)) {
-    throw error(peek(), "';' expected after value");
+    throw error(previous(), "';' expected after value");
   }
 
   return value;
@@ -94,7 +94,7 @@ auto Parser::expressionStatement() -> ExpressionStatement {
   auto value = expression();
 
   if (!match(TokenType::TOKEN_SEMICOLON)) {
-    throw error(peek(), "';' expected after value");
+    throw error(previous(), "';' expected after value");
   }
 
   return value;
@@ -123,7 +123,7 @@ auto Parser::assign() -> Expression {
       return AssignExpression{(*expr_ptr)->getIdentifier(), std::move(value)};
     }
 
-    throw error(peek(), "Invalid assignment target");
+    throw error(previous(), "Invalid assignment target");
   }
 
   while (match(TokenType::TOKEN_QUESTION)) {
@@ -132,7 +132,7 @@ auto Parser::assign() -> Expression {
     if (match(TokenType::TOKEN_COLON)) {
       expr = TernaryExpression{std::move(expr), std::move(left), assign()};
     } else {
-      throw error(peek(), "':' expected after expression");
+      throw error(previous(), "':' expected after expression");
     }
   }
 
@@ -296,39 +296,41 @@ auto Parser::primary() -> Expression {
   if (match(TokenType::TOKEN_LEFT_PAREN)) {
     auto expr = expression();
     if (!match(TokenType::TOKEN_RIGHT_PAREN)) {
-      throw error(peek(), "')' expected after expression");
+      throw error(previous(), "')' expected after expression");
     }
     return GroupingExpression{std::move(expr)};
   }
 
-  throw error(peek(), "Expression expected");
+  throw error(previous(), "Expression expected");
 }
 
 void Parser::synchronize() {
-  ++m_token_it;
+  if (m_token_it != m_tokens.end()) {
+    std::optional<Token const *> token = peek();
+    while (token.has_value()) {
+      switch (token.value()->getType()) {
+        case TokenType::TOKEN_CLASS:
+        case TokenType::TOKEN_FUN:
+        case TokenType::TOKEN_VAR:
+        case TokenType::TOKEN_FOR:
+        case TokenType::TOKEN_IF:
+        case TokenType::TOKEN_WHILE:
+        case TokenType::TOKEN_PRINT:
+        case TokenType::TOKEN_RETURN:
+          return;
+        default: {
+        }
+      }
 
-  std::optional<Token const *> token = peek();
-  while (token.has_value()) {
-    std::optional<Token const *> prev_token = previous();
-    if (prev_token.has_value() &&
-        prev_token.value()->getType() == TokenType::TOKEN_SEMICOLON) {
-      return;
-    }
+      ++m_token_it;
+      token = peek();
 
-    switch (token.value()->getType()) {
-      case TokenType::TOKEN_CLASS:
-      case TokenType::TOKEN_FUN:
-      case TokenType::TOKEN_VAR:
-      case TokenType::TOKEN_FOR:
-      case TokenType::TOKEN_IF:
-      case TokenType::TOKEN_WHILE:
-      case TokenType::TOKEN_PRINT:
-      case TokenType::TOKEN_RETURN:
+      std::optional<Token const *> prev_token = previous();
+      if (prev_token.has_value() &&
+          prev_token.value()->getType() == TokenType::TOKEN_SEMICOLON) {
         return;
+      }
     }
-
-    ++m_token_it;
-    token = peek();
   }
 }
 
@@ -363,15 +365,12 @@ inline auto Parser::match(std::initializer_list<TokenType> types) -> bool {
 
 auto Parser::error(std::optional<Token const *> token, std::string const &msg)
     -> ParserException {
-  std::string str;
-  if (!token.has_value()) {
-    str = fmt::format("{} at end", msg);
+  if (token.has_value()) {
+    m_error_reporter.setError(msg, token.value()->getPosition());
   } else {
-    auto const *token_value = token.value();
-    str = fmt::format("Line: {}\n{}", token_value->getLine(), msg);
+    m_error_reporter.setError(msg);
   }
-  m_error_reporter.setError(ErrorType::PARSER_ERROR, str);
-  return {str};
+  return {msg};
 }
 
 Parser::ParserException::ParserException(std::string const &what)
