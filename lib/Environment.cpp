@@ -16,12 +16,12 @@ Environment::EnvironmentException::EnvironmentException(std::string const &what)
 
 void Environment::define(std::string_view name,
                          std::optional<Interpreter::ExpressionValue> value) {
-  m_values.insert_or_assign(name, value);
+  m_values.insert_or_assign(std::string{name}, value);
 }
 
 void Environment::assign(Box<AssignExpression> const &expr,
                          Interpreter::ExpressionValue const &value) {
-  auto name = expr->getName();
+  auto const name = std::string{expr->getName().data()};
   if (m_values.contains(name)) {
     m_values[name] = value;
   } else {
@@ -33,7 +33,7 @@ void Environment::assign(Box<AssignExpression> const &expr,
 auto Environment::get(Box<VariableExpression> const &expr)
     -> std::optional<Interpreter::ExpressionValue> {
   try {
-    return m_values.at(expr->getName());
+    return m_values.at(std::string{expr->getName()});
   } catch (std::out_of_range &e) {
     throw error(expr->getIdentifier(),
                 fmt::format("Undeclared variable '{}'", expr->getName()));

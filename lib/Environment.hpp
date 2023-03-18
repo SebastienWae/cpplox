@@ -2,6 +2,7 @@
 #define CPPLOX_ENVIRONMENT_HPP
 
 #include <optional>
+#include <string>
 #include <string_view>
 #include <unordered_map>
 
@@ -9,8 +10,7 @@
 #include "Interpreter.hpp"
 
 class Environment {
-  std::unordered_map<std::string_view,
-                     std::optional<Interpreter::ExpressionValue>>
+  std::unordered_map<std::string, std::optional<Interpreter::ExpressionValue>>
       m_values;
 
   ErrorReporter& m_error_reporter;
