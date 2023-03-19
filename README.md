@@ -1,6 +1,16 @@
 # cpplox
 `cpplox` is an interpreter for the Lox language written in C++.
 
+## Roadmap
+- [x] Lexer
+- [x] Expressions
+- [x] Interpreter
+- [x] Statements
+- [x] Environment
+- [x] Scopes
+- [ ] Control flow
+- [ ] Functions
+- [ ] Class
 
 ## Installing
 ### Building from source 
