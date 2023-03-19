@@ -9,7 +9,10 @@
 #include "Expression.hpp"
 
 Environment::Environment(ErrorReporter &error_reporter)
-    : m_error_reporter(error_reporter) {}
+    : m_error_reporter(error_reporter), m_parent(std::nullopt) {}
+
+Environment::Environment(Environment &parent)
+    : m_error_reporter(parent.m_error_reporter), m_parent(parent) {}
 
 Environment::EnvironmentException::EnvironmentException(std::string const &what)
     : std::runtime_error("[InterpreterException]\n" + what) {}
@@ -21,9 +24,11 @@ void Environment::define(std::string_view name,
 
 void Environment::assign(Box<AssignExpression> const &expr,
                          Interpreter::ExpressionValue const &value) {
-  auto const name = std::string{expr->getName().data()};
+  auto const name = std::string{expr->getName()};
   if (m_values.contains(name)) {
     m_values[name] = value;
+  } else if (m_parent.has_value()) {
+    m_parent.value().get().assign(expr, value);
   } else {
     throw error(expr->getIdentifier(),
                 fmt::format("Undeclared variable '{}'", expr->getName()));
@@ -35,6 +40,9 @@ auto Environment::get(Box<VariableExpression> const &expr)
   try {
     return m_values.at(std::string{expr->getName()});
   } catch (std::out_of_range &e) {
+    if (m_parent.has_value()) {
+      return m_parent.value().get().get(expr);
+    }
     throw error(expr->getIdentifier(),
                 fmt::format("Undeclared variable '{}'", expr->getName()));
   }

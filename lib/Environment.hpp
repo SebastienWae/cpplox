@@ -1,6 +1,7 @@
 #ifndef CPPLOX_ENVIRONMENT_HPP
 #define CPPLOX_ENVIRONMENT_HPP
 
+#include <functional>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -14,9 +15,11 @@ class Environment {
       m_values;
 
   ErrorReporter& m_error_reporter;
+  std::optional<std::reference_wrapper<Environment>> m_parent;
 
  public:
   Environment(ErrorReporter& error_reporter);
+  Environment(Environment& parent);
 
   class EnvironmentException : public std::runtime_error {
    public:

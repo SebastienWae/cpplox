@@ -36,6 +36,7 @@ class Parser {
 
   auto printStatement() -> PrintStatement;
   auto expressionStatement() -> ExpressionStatement;
+  auto blockStatement() -> BlockStatement;
 
   auto expression() -> Expression;
   auto assign() -> Expression;

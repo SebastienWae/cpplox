@@ -61,9 +61,12 @@ declaration    → varDecl
 
 varDecl        → "var" IDENTIFIER ( "=" assign )? ( "," IDENTIFIER ( "=" assign )? )* ";"
 
-statement      → exprStmt
-               | printStmt ;
 
+statement      → exprStmt
+               | printStmt
+               | block ;
+
+block          → "{" declaration* "}" ;
 exprStmt       → expression ";" ;
 printStmt      → "print" expression ";" ;
 ```

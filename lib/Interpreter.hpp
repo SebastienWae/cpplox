@@ -19,21 +19,23 @@ class Interpreter {
 
  private:
   struct StatementVisitor {
-    StatementVisitor(Interpreter &interpreter);
+    StatementVisitor(Interpreter &interpreter, Environment &env);
 
     auto operator()(Box<PrintStatement> const &s) -> void;
     auto operator()(Box<ExpressionStatement> const &s) -> void;
     auto operator()(Box<VariableDeclaration> const &s) -> void;
+    auto operator()(Box<BlockStatement> const &s) -> void;
 
     [[nodiscard]] auto getValues() const -> std::vector<std::string> const &;
 
    private:
     Interpreter &m_interpreter;
     std::vector<std::string> m_values;
+    Environment &m_env;
   };
 
   struct ExpressionVisitor {
-    ExpressionVisitor(Interpreter &interpreter);
+    ExpressionVisitor(Interpreter &interpreter, Environment &env);
 
     auto operator()(Box<LiteralNumberExpression> const &e) -> ExpressionValue;
     auto operator()([[maybe_unused]] Box<LiteralStringExpression> const &e)
@@ -82,6 +84,7 @@ class Interpreter {
 
    private:
     Interpreter &m_interpreter;
+    Environment &m_env;
   };
 
   struct TruthyVisitor {

@@ -28,3 +28,11 @@ VariableDeclaration::VariableDeclaration(
     -> std::optional<Expression> {
   return m_initializer;
 }
+
+BlockStatement::BlockStatement(std::vector<Statement>&& stmts)
+    : m_stmts(stmts) {}
+
+[[nodiscard]] auto BlockStatement::getStatements() const
+    -> std::vector<Statement> const& {
+  return m_stmts;
+}

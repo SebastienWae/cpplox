@@ -18,7 +18,7 @@ Interpreter::Interpreter(std::vector<Statement> const& statements,
 
 auto Interpreter::interpret() -> std::optional<std::vector<std::string> const> {
   try {
-    StatementVisitor v{*this};
+    StatementVisitor v{*this, m_environment};
     for (auto statement : m_statements) {
       std::visit(v, statement);
     }
@@ -55,8 +55,9 @@ auto Interpreter::isEqual(ExpressionValue const& left_value,
   return std::visit(v, left_value, right_value);
 }
 
-Interpreter::StatementVisitor::StatementVisitor(Interpreter& interpreter)
-    : m_interpreter(interpreter) {}
+Interpreter::StatementVisitor::StatementVisitor(Interpreter& interpreter,
+                                                Environment& env)
+    : m_interpreter(interpreter), m_env(env) {}
 
 [[nodiscard]] auto Interpreter::StatementVisitor::getValues() const
     -> std::vector<std::string> const& {
@@ -65,14 +66,14 @@ Interpreter::StatementVisitor::StatementVisitor(Interpreter& interpreter)
 
 auto Interpreter::StatementVisitor::operator()(Box<PrintStatement> const& s)
     -> void {
-  ExpressionVisitor expression_visitor{m_interpreter};
+  ExpressionVisitor expression_visitor{m_interpreter, m_env};
   ExpressionValue value = std::visit(expression_visitor, s->getExpression());
   StringifyVisitor stringify_visitor;
   m_values.emplace_back(std::visit(stringify_visitor, value));
 }
 auto Interpreter::StatementVisitor::operator()(
     Box<ExpressionStatement> const& s) -> void {
-  ExpressionVisitor expression_visitor{m_interpreter};
+  ExpressionVisitor expression_visitor{m_interpreter, m_env};
   std::visit(expression_visitor, s->getExpression());
 }
 
@@ -81,14 +82,27 @@ auto Interpreter::StatementVisitor::operator()(
   auto initializer = s->getInitializer();
   std::optional<ExpressionValue> value = std::nullopt;
   if (initializer.has_value()) {
-    ExpressionVisitor expression_visitor{m_interpreter};
+    ExpressionVisitor expression_visitor{m_interpreter, m_env};
     value = std::visit(expression_visitor, initializer.value());
   }
-  m_interpreter.m_environment.define(s->getName(), value);
+  m_env.define(s->getName(), value);
 }
 
-Interpreter::ExpressionVisitor::ExpressionVisitor(Interpreter& interpreter)
-    : m_interpreter(interpreter) {}
+auto Interpreter::StatementVisitor::operator()(Box<BlockStatement> const& s)
+    -> void {
+  Environment env{m_interpreter.m_environment};
+  Interpreter::StatementVisitor visitor{m_interpreter, env};
+  for (auto statement : s->getStatements()) {
+    std::visit(visitor, statement);
+  }
+  for (auto const& v : visitor.getValues()) {
+    m_values.emplace_back(v);
+  }
+}
+
+Interpreter::ExpressionVisitor::ExpressionVisitor(Interpreter& interpreter,
+                                                  Environment& env)
+    : m_interpreter(interpreter), m_env(env) {}
 
 auto Interpreter::ExpressionVisitor::operator()(
     Box<LiteralNumberExpression> const& e) -> ExpressionValue {
@@ -115,7 +129,7 @@ auto Interpreter::ExpressionVisitor::operator()(
 }
 auto Interpreter::ExpressionVisitor::operator()(
     Box<VariableExpression> const& e) -> ExpressionValue {
-  auto value = m_interpreter.m_environment.get(e);
+  auto value = m_env.get(e);
 
   if (value.has_value()) {
     return value.value();
@@ -140,7 +154,7 @@ auto Interpreter::ExpressionVisitor::operator()(Box<TernaryExpression> const& e)
 auto Interpreter::ExpressionVisitor::operator()(Box<AssignExpression> const& e)
     -> ExpressionValue {
   auto value = std::visit(*this, e->getValue());
-  m_interpreter.m_environment.assign(e, value);
+  m_env.assign(e, value);
   return value;
 }
 auto Interpreter::ExpressionVisitor::operator()(

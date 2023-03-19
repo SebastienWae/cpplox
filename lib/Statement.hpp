@@ -3,6 +3,7 @@
 
 #include <optional>
 #include <variant>
+#include <vector>
 
 #include "Expression.hpp"
 #include "Token.hpp"
@@ -16,8 +17,10 @@ declaration    → varDecl
 varDecl        → "var" IDENTIFIER ( "=" assign )? ( "," IDENTIFIER ( "=" assign )? )* ";"
 
 statement      → exprStmt
-               | printStmt ;
+               | printStmt
+               | block ;
 
+block          → "{" declaration* "}" ;
 exprStmt       → expression ";" ;
 printStmt      → "print" expression ";" ;
 */
@@ -25,9 +28,19 @@ printStmt      → "print" expression ";" ;
 class ExpressionStatement;
 class PrintStatement;
 class VariableDeclaration;
+class BlockStatement;
 
 using Statement = std::variant<Box<ExpressionStatement>, Box<PrintStatement>,
-                               Box<VariableDeclaration> >;
+                               Box<VariableDeclaration>, Box<BlockStatement> >;
+
+class BlockStatement {
+  std::vector<Statement> m_stmts;
+
+ public:
+  BlockStatement(std::vector<Statement> &&stmts);
+
+  [[nodiscard]] auto getStatements() const -> std::vector<Statement> const &;
+};
 
 class ExpressionStatement {
   Expression m_expr;

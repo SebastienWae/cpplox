@@ -76,6 +76,9 @@ auto Parser::statement() -> Statement {
   if (match(TokenType::TOKEN_PRINT)) {
     return printStatement();
   }
+  if (match(TokenType::TOKEN_LEFT_BRACE)) {
+    return blockStatement();
+  }
 
   return expressionStatement();
 }
@@ -98,6 +101,26 @@ auto Parser::expressionStatement() -> ExpressionStatement {
   }
 
   return value;
+}
+
+auto Parser::blockStatement() -> BlockStatement {
+  std::vector<Statement> statements;
+
+  for (auto curr = peek(); curr.has_value() && curr.value()->getType() !=
+                                                   TokenType::TOKEN_RIGHT_BRACE;
+       curr = peek()) {
+    std::vector<Statement> stmts;
+    declarations(stmts);
+    for (auto const &s : stmts) {
+      statements.emplace_back(s);
+    }
+  }
+
+  if (!match(TokenType::TOKEN_RIGHT_BRACE)) {
+    throw error(peek(), "'}' expected after block");
+  }
+
+  return statements;
 }
 
 auto Parser::expression() -> Expression {
