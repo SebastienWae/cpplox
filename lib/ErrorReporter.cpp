@@ -25,8 +25,6 @@ ErrorReporter::ErrorReporter(Formater formater)
 
 [[nodiscard]] auto ErrorReporter::getErrors() const
     -> std::vector<std::string> {
-  auto s = m_source.at(0);
-  auto i = defaultFormater(m_errors.at(0), m_source);
   return m_errors | ranges::views::transform([this](Error const& error) {
            return m_formater(error, m_source);
          }) |

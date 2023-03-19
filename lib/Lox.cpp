@@ -39,7 +39,6 @@ auto Lox::run(std::string_view source)
 }
 
 [[nodiscard]] auto Lox::getErrors() const -> std::vector<std::string> {
-  auto error = m_error_reporter.getErrors();
   return m_error_reporter.getErrors();
 }
 
