@@ -26,8 +26,8 @@
 $ cpplox
 cpplox: Lox interpreter - v0.0.1
 To exit, press Ctrl+d or type "exit"
->> var a = 1
->> print a + 2
+>> var a = 1;
+>> print a + 2;
 3
 ```
 ### File
