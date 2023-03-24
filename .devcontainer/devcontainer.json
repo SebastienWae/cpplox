@@ -1,8 +1,8 @@
 {
   "name": "devcontainer",
-
-  "build": { "dockerfile": "Dockerfile" },
-
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
   "customizations": {
     "vscode": {
       "extensions": [
@@ -26,11 +26,10 @@
       }
     }
   },
-
   "remoteEnv": {
     "EDITOR": "code -w",
-    "VCPKG_DISABLE_METRICS": "1"
+    "VCPKG_DISABLE_METRICS": "1",
+    "LLVM_SYMBOLIZER_PATH": "llvm-symbolizer-15"
   },
-
   "remoteUser": "dev"
 }
