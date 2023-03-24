@@ -1,17 +1,6 @@
 #include "Parser.hpp"
 
 #include <algorithm>
-#include <iterator>
-#include <memory>
-#include <optional>
-#include <stdexcept>
-#include <variant>
-#include <vector>
-
-#include "ErrorReporter.hpp"
-#include "Expression.hpp"
-#include "Statement.hpp"
-#include "Token.hpp"
 
 Parser::Parser(std::vector<std::unique_ptr<Token> > const &tokens,
                ErrorReporter &error_reporter)

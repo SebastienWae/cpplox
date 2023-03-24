@@ -4,8 +4,6 @@
 #include <readline/readline.h>
 
 #include <cstdlib>
-#include <optional>
-#include <string_view>
 
 ReadLine::ReadLine(std::string_view const prompt) : m_prompt(prompt) {}
 

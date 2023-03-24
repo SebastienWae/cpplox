@@ -1,13 +1,5 @@
 #include "Environment.hpp"
 
-#include <fmt/core.h>
-
-#include <optional>
-#include <stdexcept>
-
-#include "ErrorReporter.hpp"
-#include "Expression.hpp"
-
 Environment::Environment(ErrorReporter &error_reporter)
     : m_error_reporter(error_reporter), m_parent(std::nullopt) {}
 

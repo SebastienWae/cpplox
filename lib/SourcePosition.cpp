@@ -1,7 +1,5 @@
 #include "SourcePosition.hpp"
 
-#include <string_view>
-
 SourcePosition::SourcePosition(std::uint32_t start_line, std::uint32_t end_line,
                                std::uint32_t start_line_postion,
                                std::uint32_t end_line_position)

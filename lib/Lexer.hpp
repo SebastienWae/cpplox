@@ -1,10 +1,9 @@
 #ifndef CPPLOX_LEXER_HPP
 #define CPPLOX_LEXER_HPP
 
-#include <functional>
 #include <memory>
+#include <optional>
 #include <string_view>
-#include <type_traits>
 #include <vector>
 
 #include "ErrorReporter.hpp"

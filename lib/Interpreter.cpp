@@ -1,13 +1,6 @@
 #include "Interpreter.hpp"
 
-#include <memory>
-#include <optional>
-#include <string>
-#include <variant>
-
 #include "Environment.hpp"
-#include "ErrorReporter.hpp"
-#include "Statement.hpp"
 
 Interpreter::Interpreter(std::vector<Statement> const& statements,
                          Environment& environment,

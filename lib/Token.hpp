@@ -2,13 +2,6 @@
 #define CPPLOX_TOKEN_HPP
 
 #include <fmt/core.h>
-#include <fmt/format.h>
-
-#include <memory>
-#include <optional>
-#include <string>
-#include <string_view>
-#include <variant>
 
 #include "SourcePosition.hpp"
 #include "utils/Enums.hpp"

@@ -7,6 +7,7 @@
 
 #include "Expression.hpp"
 #include "Token.hpp"
+#include "utils/Box.hpp"
 
 /*
 program        → declaration* EOF ;

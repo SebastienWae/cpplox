@@ -1,10 +1,7 @@
 #ifndef CPPLOX_EXPRESSION_HPP
 #define CPPLOX_EXPRESSION_HPP
 
-#include <cstddef>
-#include <iostream>
 #include <string_view>
-#include <utility>
 #include <variant>
 
 #include "./utils/Box.hpp"

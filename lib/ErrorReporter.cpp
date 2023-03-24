@@ -3,15 +3,8 @@
 #include <fmt/color.h>
 #include <fmt/core.h>
 
-#include <algorithm>
-#include <any>
-#include <range/v3/algorithm.hpp>
-#include <range/v3/algorithm/any_of.hpp>
 #include <range/v3/view.hpp>
-#include <range/v3/view/filter.hpp>
 #include <range/v3/view/transform.hpp>
-#include <string_view>
-#include <utility>
 
 Error::Error(std::string msg, std::optional<SourcePosition> position)
     : m_msg(std::move(msg)), m_position(std::move(position)) {}

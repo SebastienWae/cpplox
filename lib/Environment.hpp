@@ -1,14 +1,15 @@
 #ifndef CPPLOX_ENVIRONMENT_HPP
 #define CPPLOX_ENVIRONMENT_HPP
 
-#include <functional>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <unordered_map>
 
+#include "ErrorReporter.hpp"
 #include "Expression.hpp"
 #include "Interpreter.hpp"
+#include "Token.hpp"
 
 class Environment {
   std::unordered_map<std::string, std::optional<Interpreter::ExpressionValue>>
@@ -20,6 +21,10 @@ class Environment {
  public:
   Environment(ErrorReporter& error_reporter);
   Environment(Environment& parent);
+  ~Environment() = default;
+  Environment(Environment&&) = delete;
+  auto operator=(const Environment&) -> Environment& = delete;
+  auto operator=(Environment&&) -> Environment& = delete;
 
   class EnvironmentException : public std::runtime_error {
    public:

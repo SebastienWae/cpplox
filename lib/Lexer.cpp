@@ -1,18 +1,6 @@
 #include "Lexer.hpp"
 
-#include <cctype>
 #include <charconv>
-#include <cstddef>
-#include <exception>
-#include <functional>
-#include <optional>
-#include <stdexcept>
-#include <string_view>
-#include <type_traits>
-
-#include "ErrorReporter.hpp"
-#include "SourcePosition.hpp"
-#include "Token.hpp"
 
 Lexer::Lexer(std::string_view source, ErrorReporter &error_reporter)
     : m_source(source), m_error_reporter(error_reporter) {}

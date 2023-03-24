@@ -1,9 +1,5 @@
 #include "Expression.hpp"
 
-#include <string_view>
-
-#include "Token.hpp"
-
 LiteralNumberExpression::LiteralNumberExpression(double value)
     : m_value(value) {}
 

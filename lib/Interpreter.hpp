@@ -1,14 +1,16 @@
 #ifndef CPPLOX_INTERPRETER_HPP
 #define CPPLOX_INTERPRETER_HPP
 
-#include <cstddef>
+// #include <cstddef>
 #include <optional>
 #include <string>
+#include <variant>
 #include <vector>
 
 #include "ErrorReporter.hpp"
 #include "Expression.hpp"
 #include "Statement.hpp"
+#include "utils/Box.hpp"
 
 class Environment;
 

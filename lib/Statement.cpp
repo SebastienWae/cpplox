@@ -1,7 +1,5 @@
 #include "Statement.hpp"
 
-#include "Expression.hpp"
-
 ExpressionStatement::ExpressionStatement(Expression&& expr) : m_expr(expr) {}
 
 [[nodiscard]] auto ExpressionStatement::getExpression() const
