@@ -78,7 +78,8 @@
       "name": "test-base",
       "hidden": true,
       "output": {
-        "outputOnFailure": true
+        "outputOnFailure": true,
+        "shortProgress": true
       },
       "execution": {
         "noTestsAction": "error",

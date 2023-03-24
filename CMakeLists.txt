@@ -4,7 +4,10 @@ project(cpplox
   VERSION 0.0.1
   LANGUAGES CXX)
 
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+
+include(CTest)
+
+# if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   configure_file(
     "${PROJECT_SOURCE_DIR}/include/config.hpp.in"
     "${PROJECT_SOURCE_DIR}/include/config.hpp"
@@ -20,12 +23,14 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
   set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/externals/sanitizers-cmake/cmake" ${CMAKE_MODULE_PATH})
   find_package(Sanitizers)
+# endif()
 
-  include(CTest)
+if(BUILD_TESTING)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage -fprofile-arcs -ftest-coverage")
 endif()
 
 add_subdirectory(lib)
 add_subdirectory(app)
-if((CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME OR MODERN_CMAKE_BUILD_TESTING) AND BUILD_TESTING)
+if(BUILD_TESTING)
   add_subdirectory(test)
 endif()
