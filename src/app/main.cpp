@@ -7,7 +7,7 @@
 #include <iostream>
 #include <span>
 
-#include "../include/config.hpp"
+#include "../../include/config.hpp"
 #include "../lib/Lox.hpp"
 #include "ReadLine.hpp"
 
