@@ -28,6 +28,8 @@ target_link_libraries(lox
   range-v3::concepts
   range-v3::range-v3)
 
+add_library(cpplox::lox ALIAS lox)
+
 # set_target_properties(cpplox
 #   PROPERTIES
 #   ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)

@@ -1,6 +1,6 @@
 
 #include <doctest/doctest.h>
 
-#include "../lib/Interpreter.hpp"
+#include "../src/lib/Interpreter.hpp"
 
 TEST_CASE("interpreter") { ErrorReporter err; }

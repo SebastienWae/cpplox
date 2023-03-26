@@ -1,6 +1,6 @@
 #include <doctest/doctest.h>
 
-#include "../lib/Lexer.hpp"
+#include "../src/lib/Lexer.hpp"
 
 TEST_CASE("lexer") {
   ErrorReporter err;

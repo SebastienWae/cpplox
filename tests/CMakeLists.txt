@@ -1,10 +1,10 @@
 enable_testing()
 
-add_executable(LexerTest "test_main.cpp" "LexerTest.cpp")
-target_link_libraries(LexerTest PRIVATE doctest::doctest lox)
-add_test(NAME LexerTest COMMAND LexerTest)
+add_executable(lexer_test "test_main.cpp" "LexerTest.cpp")
+target_link_libraries(lexer_test PRIVATE doctest::doctest cpplox::lox)
+add_test(NAME lexer COMMAND lexer_test)
 
-# add_executable(${PROJECT_NAME}_ParserTest "test_main.cpp" "ParserTest.cpp")
+# add_executable(${PROJECT_NAME}_ParserTeskkt "test_main.cpp" "ParserTest.cpp")
 # target_link_libraries(${PROJECT_NAME}_ParserTest PRIVATE ${PROJECT_NAME} doctest::doctest)
 # add_test(NAME ParserTest COMMAND ${PROJECT_NAME}_ParserTest)
 

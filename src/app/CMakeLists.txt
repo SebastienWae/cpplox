@@ -15,9 +15,9 @@ target_link_libraries(cpplox
   ${READLINE_LIBRARY}
   ${READLINE_HISTORY_LIBRARY}
   ${NCURSES_LIBRARY}
-  lox)
+  cpplox::lox)
 
-# set_target_properties(${PROJECT_NAME}_bin
+#  set_target_properties(plox::cpplox
 #   PROPERTIES
 #   OUTPUT_NAME cpplox)
   # RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

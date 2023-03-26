@@ -1,6 +1,6 @@
 
 #include <doctest/doctest.h>
 
-#include "../lib/Parser.hpp"
+#include "../src/lib/Parser.hpp"
 
 TEST_CASE("parser") { ErrorReporter err; }

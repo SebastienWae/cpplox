@@ -1,3 +1,7 @@
-set(CTEST_PROJECT_NAME "test42cpp")
+set(CTEST_PROJECT_NAME "cpplox")
 set(CTEST_NIGHTLY_START_TIME "01:00:00 UTC")
-set(CTEST_SUBMIT_URL "https://my.cdash.org/submit.php?project=${CTEST_PROJECT_NAME}")
+
+set(CTEST_DROP_METHOD "https")
+set(CTEST_DROP_SITE "my.cdash.org")
+set(CTEST_DROP_LOCATION "/submit.php?project=cpplox")
+set(CTEST_DROP_SITE_CDASH TRUE)
