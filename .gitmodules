@@ -4,3 +4,6 @@
 [submodule "externals/vcpkg"]
 	path = externals/vcpkg
 	url = https://github.com/Microsoft/vcpkg.git
+[submodule "externals/fuzztest"]
+	path = externals/fuzztest
+	url = https://github.com/google/fuzztest

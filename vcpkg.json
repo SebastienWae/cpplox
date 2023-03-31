@@ -5,7 +5,7 @@
   "dependencies": [
     "fmt",
     "range-v3",
-    "doctest",
+    "gtest",
     "readline-unix"
   ],
   "overrides": [
@@ -18,8 +18,8 @@
       "version": "0.12.0"
     },
     {
-      "name": "doctest",
-      "version": "2.4.9"
+      "name": "gtest",
+      "version": "1.12.1"
     },
     {
       "name": "readline-unix",

@@ -17,7 +17,8 @@
         "Gruntfuggly.todo-tree",
         "michaeldrotar.janky-output-channels",
         "pascalsenn.keyboard-quickfix",
-        "dberezin.lox-language"
+        "dberezin.lox-language",
+        "cheshirekow.cmake-format"
       ],
       "settings": {
         "clangd.path": "clangd-15",

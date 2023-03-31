@@ -3,7 +3,7 @@ FROM ubuntu:22.04
 # ------------------------- install required packages ------------------------ #
 RUN set -eux \
   && apt-get update \
-  && apt-get install -y git cmake ninja-build gdb rr valgrind g++-12 clang-15 clang-13 \
+  && DEBIAN_FRONTEND=noninteractive apt-get install -y git cmake cmake-format ninja-build gdb rr valgrind g++-12 clang-15 clang-13 \
     libc++-15-dev libstdc++-10-dev clangd-15 clang-format-15 clang-tidy-15 \
     cppcheck iwyu pkg-config ccache curl zip unzip \
   && apt-get clean
