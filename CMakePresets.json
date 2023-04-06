@@ -1,99 +1,109 @@
 {
-  "version": 3,
+  "version": 6,
   "configurePresets": [
     {
-      "name": "config-base",
+      "name": "base",
       "hidden": true,
       "binaryDir": "${sourceDir}/build/${presetName}",
       "installDir": "${sourceDir}/install/${presetName}",
       "toolchainFile": "${sourceDir}/externals/vcpkg/scripts/buildsystems/vcpkg.cmake"
     },
     {
-      "name": "config-debug",
-      "inherits": "config-base",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug"
+      "name": "ninja-multi",
+      "hidden": true,
+      "inherits": "base",
+      "generator": "Ninja Multi-Config"
+    },
+    {
+      "name": "gcc",
+      "inherits": "ninja-multi",
+      "environment": {
+        "CXX": "g++"
       }
     },
     {
-      "name": "config-sanitize",
-      "inherits": "config-base",
+      "name": "clang",
+      "inherits": "ninja-multi",
+      "environment": {
+        "CXX": "clang++"
+      }
+    },
+    {
+      "name": "clang-sanitize",
+      "inherits": "clang",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
         "SANITIZE_ADDRESS": "ON",
+        "SANITIZE_MEMORY": "ON",
         "SANITIZE_UNDEFINED": "ON"
       }
     },
     {
-      "name": "config-release",
-      "inherits": "config-base",
+      "name": "clang-fuzz",
+      "inherits": "clang-sanitize",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "CMAKE_CXX_INCLUDE_WHAT_YOU_USE": "include-what-you-use",
-        "CMAKE_CXX_CLANG_TIDY": "clang-tidy-15",
-        "CMAKE_CXX_CPPCHECK": "cppcheck"
+        "CMAKE_CXX_FLAGS": "-DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -UNDEBUG -fsanitize-coverage=inline-8bit-counters -fsanitize-coverage=trace-cmp -DADDRESS_SANITIZER"
+      }
+    },
+    {
+      "name": "llvm-cov",
+      "inherits": "clang",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "--coverage"
       }
     }
   ],
   "buildPresets": [
     {
-      "name": "build-debug",
-      "targets": "cpplox_bin",
-      "configurePreset": "config-debug"
+      "name": "liblox",
+      "configurePreset": "gcc",
+      "targets": [
+        "lox"
+      ],
+      "configuration": "Release"
     },
     {
-      "name": "build-sanitize",
-      "targets": "cpplox_bin",
-      "configurePreset": "config-sanitize"
+      "name": "cpplox",
+      "configurePreset": "gcc",
+      "targets": [
+        "cpplox"
+      ],
+      "configuration": "Release"
     },
     {
-      "name": "build-release",
-      "targets": "cpplox_bin",
-      "configurePreset": "config-release"
-    },
-    {
-      "name": "test-debug",
-      "targets": "cpplox_test",
-      "configurePreset": "config-debug"
-    },
-    {
-      "name": "test-sanitize",
-      "targets": "cpplox_test",
-      "configurePreset": "config-sanitize"
-    },
-    {
-      "name": "test-release",
-      "targets": "cpplox_test",
-      "configurePreset": "config-release"
+      "name": "fuzz",
+      "configurePreset": "clang-fuzz",
+      "targets": [],
+      "configuration": "RelWithDebInfo"
     }
   ],
   "testPresets": [
     {
-      "name": "test-base",
-      "hidden": true,
-      "output": {
-        "outputOnFailure": true,
-        "shortProgress": true
-      },
-      "execution": {
-        "noTestsAction": "error",
-        "stopOnFailure": true
-      }
+      "name": "gcc",
+      "configurePreset": "gcc",
+      "configuration": "RelWithDebInfo"
     },
     {
-      "name": "test-debug",
-      "configurePreset": "config-debug",
-      "inherits": "test-base"
+      "name": "clang",
+      "configurePreset": "clang",
+      "configuration": "RelWithDebInfo"
     },
     {
-      "name": "test-sanitize",
-      "configurePreset": "config-sanitize",
-      "inherits": "test-base"
-    },
+      "name": "asan",
+      "configurePreset": "clang-sanitize",
+      "configuration": "RelWithDebInfo"
+    }
+  ],
+  "packagePresets": [
     {
-      "name": "test-release",
-      "configurePreset": "config-release",
-      "inherits": "test-base"
+      "name": "cpplox",
+      "configurePreset": "gcc",
+      "generators": [
+        "ZIP",
+        "TGZ"
+      ],
+      "configurations": [
+        "Release"
+      ]
     }
   ]
 }

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.22)
+cmake_minimum_required(VERSION 3.25)
 
 project(
   cpplox
@@ -6,35 +6,20 @@ project(
   LANGUAGES CXX)
 
 if(PROJECT_IS_TOP_LEVEL)
-  include(CTest)
+  include(cmake/UseCompilerCache.cmake)
+  usecompilercache()
 
-  find_program(CCACHE_EXECUTABLE ccache)
-  if(CCACHE_EXECUTABLE)
-    set(ccacheEnv CCACHE_SLOPPINESS=pch_defines,time_macros)
-    set(CMAKE_CXX_COMPILER_LAUNCHER ${CMAKE_COMMAND} -E env ${ccacheEnv}
-                                    ${CCACHE_EXECUTABLE})
-  endif()
+  include(CTest)
 
   set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+  set(CMAKE_CXX_STANDARD 20)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+  set(CMAKE_CXX_EXTENSIONS OFF)
 endif()
-
-# default: -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -UNDEBUG
-
-# fuzzing flags: -fsanitize-coverage=inline-8bit-counters
-# -fsanitize-coverage=trace-cmp -fsanitize=address -DADDRESS_SANITIZER
-
-# enable fuzzing mode: -DFUZZTEST_FUZZING_MODE=on
-
-# enable libfuzzer mode -DFUZZTEST_COMPATIBILITY_MODE=libfuzzer
-# -fsanitize=fuzzer-no-link -DFUZZTEST_COMPATIBILITY_MODE
 
 configure_file("${PROJECT_SOURCE_DIR}/include/config.hpp.in"
                "${PROJECT_SOURCE_DIR}/include/config.hpp")
-
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(dependencies.cmake)
 
@@ -64,3 +49,13 @@ add_subdirectory(src/app)
 # . ctest -j 4
 
 # mkdir -p build cd build
+
+# default: -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -UNDEBUG
+
+# fuzzing flags: -fsanitize-coverage=inline-8bit-counters
+# -fsanitize-coverage=trace-cmp -fsanitize=address -DADDRESS_SANITIZER
+
+# enable fuzzing mode: -DFUZZTEST_FUZZING_MODE=on
+
+# enable libfuzzer mode -DFUZZTEST_COMPATIBILITY_MODE=libfuzzer
+# -fsanitize=fuzzer-no-link -DFUZZTEST_COMPATIBILITY_MODE
