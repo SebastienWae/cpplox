@@ -24,8 +24,8 @@ configure_file("${PROJECT_SOURCE_DIR}/include/config.hpp.in"
 include(dependencies.cmake)
 
 if(BUILD_TESTING AND PROJECT_IS_TOP_LEVEL)
+  set(RE2_BUILD_TESTING OFF)
   add_subdirectory(externals/fuzztest)
-  fuzztest_setup_fuzzing_flags()
   add_subdirectory(tests)
 endif()
 
@@ -58,4 +58,10 @@ add_subdirectory(src/app)
 # enable fuzzing mode: -DFUZZTEST_FUZZING_MODE=on
 
 # enable libfuzzer mode -DFUZZTEST_COMPATIBILITY_MODE=libfuzzer
-# -fsanitize=fuzzer-no-link -DFUZZTEST_COMPATIBILITY_MODE
+# -fsanitize=fuzzer-no-link -DFUZZTEST_COMPATIBILITY_MODE "testPresets": [ {
+# "name": "gcc", "configurePreset": "gcc", "configuration": "RelWithDebInfo" },
+# { "name": "clang", "configurePreset": "clang", "configuration":
+# "RelWithDebInfo" }, { "name": "asan", "configurePreset": "clang-sanitize",
+# "configuration": "RelWithDebInfo" } ], "packagePresets": [ { "name": "cpplox",
+# "configurePreset": "gcc", "generators": [ "ZIP", "TGZ" ], "configurations": [
+# "Release" ] }

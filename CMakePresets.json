@@ -4,8 +4,8 @@
     {
       "name": "base",
       "hidden": true,
-      "binaryDir": "${sourceDir}/build/${presetName}",
-      "installDir": "${sourceDir}/install/${presetName}",
+      "binaryDir": "build",
+      "installDir": "install",
       "toolchainFile": "${sourceDir}/externals/vcpkg/scripts/buildsystems/vcpkg.cmake"
     },
     {
@@ -26,6 +26,9 @@
       "inherits": "ninja-multi",
       "environment": {
         "CXX": "clang++"
+      },
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-gdwarf-4"
       }
     },
     {
@@ -33,7 +36,6 @@
       "inherits": "clang",
       "cacheVariables": {
         "SANITIZE_ADDRESS": "ON",
-        "SANITIZE_MEMORY": "ON",
         "SANITIZE_UNDEFINED": "ON"
       }
     },
@@ -43,67 +45,6 @@
       "cacheVariables": {
         "CMAKE_CXX_FLAGS": "-DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -UNDEBUG -fsanitize-coverage=inline-8bit-counters -fsanitize-coverage=trace-cmp -DADDRESS_SANITIZER"
       }
-    },
-    {
-      "name": "llvm-cov",
-      "inherits": "clang",
-      "cacheVariables": {
-        "CMAKE_CXX_FLAGS": "--coverage"
-      }
-    }
-  ],
-  "buildPresets": [
-    {
-      "name": "liblox",
-      "configurePreset": "gcc",
-      "targets": [
-        "lox"
-      ],
-      "configuration": "Release"
-    },
-    {
-      "name": "cpplox",
-      "configurePreset": "gcc",
-      "targets": [
-        "cpplox"
-      ],
-      "configuration": "Release"
-    },
-    {
-      "name": "fuzz",
-      "configurePreset": "clang-fuzz",
-      "targets": [],
-      "configuration": "RelWithDebInfo"
-    }
-  ],
-  "testPresets": [
-    {
-      "name": "gcc",
-      "configurePreset": "gcc",
-      "configuration": "RelWithDebInfo"
-    },
-    {
-      "name": "clang",
-      "configurePreset": "clang",
-      "configuration": "RelWithDebInfo"
-    },
-    {
-      "name": "asan",
-      "configurePreset": "clang-sanitize",
-      "configuration": "RelWithDebInfo"
-    }
-  ],
-  "packagePresets": [
-    {
-      "name": "cpplox",
-      "configurePreset": "gcc",
-      "generators": [
-        "ZIP",
-        "TGZ"
-      ],
-      "configurations": [
-        "Release"
-      ]
     }
   ]
 }
