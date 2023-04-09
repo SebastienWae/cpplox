@@ -1,0 +1,24 @@
+set(CTEST_PROJECT_NAME "cpplox")
+set(CTEST_NIGHTLY_START_TIME "01:00:00 UTC")
+
+set(CTEST_DROP_METHOD "https")
+set(CTEST_DROP_SITE "my.cdash.org")
+set(CTEST_DROP_LOCATION "/submit.php?project=cpplox")
+set(CTEST_DROP_SITE_CDASH TRUE)
+
+site_name(CTEST_SITE)
+
+set(CTEST_SOURCE_DIRECTORY "${CTEST_SCRIPT_DIRECTORY}/..")
+set(CTEST_BINARY_DIRECTORY "${CTEST_SCRIPT_DIRECTORY}/../build")
+set(CTEST_CMAKE_GENERATOR "Ninja Multi-Config")
+
+set(CTEST_USE_LAUNCHERS_DEFAULT YES)
+
+set(CDASH_AUTH "Authorization: Bearer $ENV{CDASH_TOKEN}")
+
+# ctest --script CTestJob.cmake --progress --output-on-failure -VV
+# -DCTEST_CONFIGURE_PRESET= -DCTEST_CONFIGURATION_TYPE=
+
+# -DCTEST_MEMORYCHECK_COMMAND="/usr/bin/valgrind"
+# -DCTEST_MEMORYCHECK_COMMAND_OPTIONS="--leak-check=full"
+# -DCTEST_MEMORYCHECK_TYPE=AddressSanitizer
