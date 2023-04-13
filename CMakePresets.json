@@ -26,20 +26,24 @@
       "inherits": "ninja-multi",
       "environment": {
         "CXX": "clang++"
-      },
-      "cacheVariables": {
-        "CMAKE_CXX_FLAGS": "-gdwarf-4"
       }
     },
     {
-      "name": "clang-fuzz",
+      "name": "llvm-cov",
       "inherits": "clang",
       "cacheVariables": {
-        "SANITIZE_ADDRESS": "ON",
-        "SANITIZE_MEMORY": "ON",
-        "SANITIZE_UNDEFINED": "ON",
-        "CMAKE_CXX_FLAGS": "-DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION -UNDEBUG -fsanitize-coverage=inline-8bit-counters -fsanitize-coverage=trace-cmp -DADDRESS_SANITIZER"
+        "CMAKE_CXX_FLAGS": "-fprofile-instr-generate -fcoverage-mapping"
       }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "llvm-cov",
+      "configurePreset": "llvm-cov",
+      "configuration": "RelWithDebInfo",
+      "targets": [
+        "lexer_test"
+      ]
     }
   ]
 }

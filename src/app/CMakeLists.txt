@@ -9,7 +9,7 @@ target_link_libraries(
   cpplox PRIVATE fmt::fmt ${READLINE_LIBRARY} ${READLINE_HISTORY_LIBRARY}
                  ${NCURSES_LIBRARY} cpplox::lox)
 
-# add_sanitizers(cpplox)
+add_sanitizers(cpplox)
 
 # set_target_properties(plox::cpplox PROPERTIES OUTPUT_NAME cpplox)
 # RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

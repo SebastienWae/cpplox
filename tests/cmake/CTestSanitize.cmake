@@ -1,21 +1,32 @@
-# ---------------------------------- config ---------------------------------- #
-find_program(VALGRIND "valgrind" REQUIRED)
+# ----------------------------------- ctest ---------------------------------- #
+set(CTEST_BUILD_NAME "${CMAKE_HOST_SYSTEM_NAME}.Sanitize.${TEST_SANITIZER}")
 
-set(CTEST_BUILD_NAME "${CMAKE_HOST_SYSTEM_NAME}.Valgrind")
 set(CTEST_CONFIGURATION_TYPE "Debug")
 
-set(CTEST_MEMORYCHECK_COMMAND ${VALGRIND})
-set(CTEST_MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full")
+set(CONFIGURE_OPTIONS "--preset clang")
+if(TEST_SANITIZER STREQUAL "address")
+  set(CTEST_MEMORYCHECK_TYPE AddressSanitizer)
+  set(CONFIGURE_OPTIONS ${CONFIGURE_OPTIONS} "-DSANITIZE_ADDRESS=ON")
+elseif(TEST_SANITIZER STREQUAL "undefined")
+  set(CTEST_MEMORYCHECK_TYPE UndefinedBehaviorSanitizer)
+  set(CONFIGURE_OPTIONS ${CONFIGURE_OPTIONS} "-DSANITIZE_UNDEFINED=ON")
+endif()
 
-# TODO: add --suppressions=absl.supp
+if(NOT DEFINED CTEST_MEMORYCHECK_TYPE)
+  message(FATAL_ERROR "TEST_SANITIZER must be set to address or undefined")
+endif()
 
 include(${CTEST_SCRIPT_DIRECTORY}/CTestConfig.cmake)
 
 # ----------------------------------- start ---------------------------------- #
-ctest_start(Experimental)
+if(ENV{CI})
+  ctest_start(Continuous)
+else()
+  ctest_start(Experimental)
+endif()
 
 # --------------------------------- configure -------------------------------- #
-ctest_configure(OPTIONS "--preset gcc" RETURN_VALUE config_result)
+ctest_configure(OPTIONS "${CONFIGURE_OPTIONS}" RETURN_VALUE config_result)
 ctest_submit(PARTS Start Configure HTTPHEADER ${CDASH_AUTH})
 
 if(config_result)

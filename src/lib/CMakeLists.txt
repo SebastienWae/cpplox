@@ -25,9 +25,9 @@ add_library(
 target_link_libraries(lox PRIVATE fmt::fmt range-v3::meta range-v3::concepts
                                   range-v3::range-v3)
 
-add_library(cpplox::lox ALIAS lox)
+add_sanitizers(lox)
 
-# add_sanitizers(lox)
+add_library(cpplox::lox ALIAS lox)
 
 # set_target_properties(cpplox PROPERTIES ARCHIVE_OUTPUT_DIRECTORY
 # ${CMAKE_BINARY_DIR}/lib)

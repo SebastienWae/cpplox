@@ -1,32 +1,25 @@
-# ---------------------------------- config ---------------------------------- #
-set(CONFIGURE_OPTIONS "--preset clang")
-if(TEST_SANITIZER EQUAL "address")
-  set(CTEST_MEMORYCHECK_TYPE=AddressSanitizer PARENT_SCOPE)
-  set(CONFIGURE_OPTIONS
-      "${CONFIGURE_OPTIONS} -DSANITIZE_ADDRESS=ON"
-      PARENT_SCOPE)
-elseif()
-  set(CTEST_MEMORYCHECK_TYPE=UndefinedBehaviorSanitizer PARENT_SCOPE)
-  set(CONFIGURE_OPTIONS
-      "${CONFIGURE_OPTIONS} -DSANITIZE_UNDEFINED=ON"
-      PARENT_SCOPE)
-endif()
+# ----------------------------------- ctest ---------------------------------- #
+find_program(VALGRIND "valgrind" REQUIRED)
 
-if(NOT DEFINED CTEST_MEMORYCHECK_TYPE)
-  message(FATAL_ERROR "TEST_SANITIZER must be set to address or undefined")
-endif()
-
-set(CTEST_BUILD_NAME
-    "${CMAKE_HOST_SYSTEM_NAME}.Sanitize.${CTEST_MEMORY_CHECK_TYPE}")
+set(CTEST_BUILD_NAME "${CMAKE_HOST_SYSTEM_NAME}.Valgrind")
 set(CTEST_CONFIGURATION_TYPE "Debug")
+
+set(CTEST_MEMORYCHECK_COMMAND ${VALGRIND})
+set(CTEST_MEMORYCHECK_COMMAND_OPTIONS
+    "--leak-check=full --suppressions=${CTEST_SCRIPT_DIRECTORY}/../suppressions/absl.supp"
+)
 
 include(${CTEST_SCRIPT_DIRECTORY}/CTestConfig.cmake)
 
 # ----------------------------------- start ---------------------------------- #
-ctest_start(Experimental) # TODO: ci
+if(ENV{CI})
+  ctest_start(Continuous)
+else()
+  ctest_start(Experimental)
+endif()
 
 # --------------------------------- configure -------------------------------- #
-ctest_configure(OPTIONS ${CONFIGURE_OPTIONS} RETURN_VALUE config_result)
+ctest_configure(OPTIONS "--preset gcc" RETURN_VALUE config_result)
 ctest_submit(PARTS Start Configure HTTPHEADER ${CDASH_AUTH})
 
 if(config_result)
@@ -45,7 +38,7 @@ endif()
 
 # --------------------------------- memcheck --------------------------------- #
 ctest_memcheck()
-ctest_submit(PARTS MemCheck)
+ctest_submit(PARTS MemCheck HTTPHEADER ${CDASH_AUTH})
 
 # ---------------------------------- submit ---------------------------------- #
 ctest_submit(PARTS Done HTTPHEADER ${CDASH_AUTH})

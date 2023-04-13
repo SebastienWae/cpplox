@@ -1,7 +1,8 @@
-set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/externals/sanitizers-cmake/cmake" ${CMAKE_MODULE_PATH})
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/externals/sanitizers-cmake/cmake"
+                      ${CMAKE_MODULE_PATH})
 find_package(Sanitizers)
 
-# find_package(gtest CONFIG REQUIRED)
+find_package(gtest CONFIG REQUIRED)
 
 find_package(fmt CONFIG REQUIRED)
 find_package(range-v3 CONFIG REQUIRED)
