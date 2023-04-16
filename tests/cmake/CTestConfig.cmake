@@ -19,7 +19,7 @@ set(CTEST_CMAKE_GENERATOR "Ninja Multi-Config")
 set(CTEST_USE_LAUNCHERS_DEFAULT YES)
 
 if(NOT DEFINED ENV{CDASH_TOKEN})
-  message(FATAL_ERROR "CDash auth token is missing")
+  message(FATAL_ERROR "CDASH_TOKEN is not defined")
 endif()
 
 set(CDASH_AUTH "Authorization: Bearer $ENV{CDASH_TOKEN}")

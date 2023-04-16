@@ -1,7 +1,0 @@
-{
-   absl
-   Memcheck:Leak
-   match-leak-kinds: possible
-   ...
-   fun:*absl*
-}
